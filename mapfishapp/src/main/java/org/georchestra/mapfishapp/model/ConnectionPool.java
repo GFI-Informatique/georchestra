@@ -16,45 +16,56 @@ public class ConnectionPool {
 
 	private String jdbcUrl;
 
-	public ConnectionPool() {}
+	private String jdbcdriver;
 
-	public ConnectionPool (String jdbcUrl) {
-	    this.jdbcUrl = jdbcUrl;
+	public ConnectionPool() {
 	}
 
-    public void init() {
-        String actualJdbcUrl = jdbcUrl;
+	public ConnectionPool(String jdbcUrl, String jdbcDriver) {
+		this.jdbcUrl = jdbcUrl;
+		this.jdbcdriver = jdbcdriver;
+	}
 
-        if (georchestraConfiguration.activated()) {
-            String supersededJdbcUrl = georchestraConfiguration.getProperty("jdbcUrl");
-            if (supersededJdbcUrl != null) {
-                actualJdbcUrl = supersededJdbcUrl;
-            }
-        }
+	public void init() {
+		String actualJdbcUrl = jdbcUrl;
 
-        basicDataSource = new BasicDataSource();
-        basicDataSource.setDriverClassName("org.postgresql.Driver");
-        basicDataSource.setTestOnBorrow(true);
-        basicDataSource.setPoolPreparedStatements(true);
-        basicDataSource.setMaxOpenPreparedStatements(-1);
-        basicDataSource.setDefaultReadOnly(false);
-        basicDataSource.setDefaultAutoCommit(true);
+		String actualJdbcDriver = jdbcdriver;
 
-        basicDataSource.setUrl(actualJdbcUrl);
-    }
-    /**
+		if (georchestraConfiguration.activated()) {
+			String supersededJdbcUrl = georchestraConfiguration.getProperty("jdbcUrl");
+			String supersededdriver = georchestraConfiguration.getProperty("jdbcDriver");
+			if (supersededJdbcUrl != null) {
+				actualJdbcUrl = supersededJdbcUrl;
+			}
+		}
 
-     *
-     * @param jdbcUrl
-     */
+		basicDataSource = new BasicDataSource();
+		basicDataSource.setDriverClassName(jdbcdriver);
+		basicDataSource.setTestOnBorrow(true);
+		basicDataSource.setPoolPreparedStatements(true);
+		basicDataSource.setMaxOpenPreparedStatements(-1);
+		basicDataSource.setDefaultReadOnly(false);
+		basicDataSource.setDefaultAutoCommit(true);
+
+		basicDataSource.setUrl(actualJdbcUrl);
+	}
+
+	/**
+	 * @param jdbcUrl
+	 */
 	public void setJdbcUrl(String jdbcUrl) {
-	    this.jdbcUrl = jdbcUrl;
+		this.jdbcUrl = jdbcUrl;
 	}
 
-    public Connection getConnection() throws SQLException
-    {
-        return basicDataSource.getConnection();
-    }
+	/**
+	 * @param jdbcdriver
+	 */
+	public void setJdbcDriver(String jdbcdriver) {
+		this.jdbcdriver = jdbcdriver;
+	}
+
+	public Connection getConnection() throws SQLException {
+		return basicDataSource.getConnection();
+	}
 
 }
-

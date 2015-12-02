@@ -19,8 +19,8 @@ public class MockConnectionPool extends ConnectionPool {
 	ResultSet rsGet = Mockito.mock(ResultSet.class);
 	ResultSet rsGet2 = Mockito.mock(ResultSet.class);
 
-	public MockConnectionPool(String jdbcUrl) { 
-		super(jdbcUrl);
+	public MockConnectionPool(String jdbcUrl, String jdbcDriver) { 
+		super(jdbcUrl, jdbcDriver);
 	}
 	
 	public Connection getConnection() throws SQLException {
