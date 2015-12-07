@@ -39,7 +39,7 @@ public class DocControllerTest {
     private MockHttpServletRequest _requestGet = new MockHttpServletRequest();
     private MockHttpServletResponse _responseGet = new MockHttpServletResponse();
 
-    private MockConnectionPool mockConnectionPool = new MockConnectionPool("ignored");
+    private MockConnectionPool mockConnectionPool = new MockConnectionPool("ignored", "ignored");
 
     @Before
     public void setUp() {

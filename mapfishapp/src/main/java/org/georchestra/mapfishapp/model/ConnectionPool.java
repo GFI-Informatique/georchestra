@@ -16,31 +16,36 @@ public class ConnectionPool {
 
 	private String jdbcUrl;
 
-	private String jdbcdriver;
+	private String jdbcDriver;
 
 	public ConnectionPool() {
 	}
 
 	public ConnectionPool(String jdbcUrl, String jdbcDriver) {
 		this.jdbcUrl = jdbcUrl;
-		this.jdbcdriver = jdbcdriver;
+		this.jdbcDriver = jdbcDriver;
 	}
 
 	public void init() {
 		String actualJdbcUrl = jdbcUrl;
 
-		String actualJdbcDriver = jdbcdriver;
+		String actualJdbcDriver = jdbcDriver;
 
 		if (georchestraConfiguration.activated()) {
 			String supersededJdbcUrl = georchestraConfiguration.getProperty("jdbcUrl");
 			String supersededdriver = georchestraConfiguration.getProperty("jdbcDriver");
+			
 			if (supersededJdbcUrl != null) {
 				actualJdbcUrl = supersededJdbcUrl;
+			}
+
+			if (supersededdriver != null) {
+				actualJdbcDriver = supersededdriver;
 			}
 		}
 
 		basicDataSource = new BasicDataSource();
-		basicDataSource.setDriverClassName(jdbcdriver);
+		basicDataSource.setDriverClassName(actualJdbcDriver);
 		basicDataSource.setTestOnBorrow(true);
 		basicDataSource.setPoolPreparedStatements(true);
 		basicDataSource.setMaxOpenPreparedStatements(-1);
@@ -61,7 +66,7 @@ public class ConnectionPool {
 	 * @param jdbcdriver
 	 */
 	public void setJdbcDriver(String jdbcdriver) {
-		this.jdbcdriver = jdbcdriver;
+		this.jdbcDriver = jdbcdriver;
 	}
 
 	public Connection getConnection() throws SQLException {
