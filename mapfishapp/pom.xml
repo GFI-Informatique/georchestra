@@ -15,6 +15,12 @@
     <maven.test.skip>false</maven.test.skip>
     <spring.version>3.1.0.RELEASE</spring.version>
   </properties>
+  <repositories>
+    <repository>
+      <id>codelds</id>
+      <url>https://code.lds.org/nexus/content/groups/main-repo</url>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -177,11 +183,11 @@
       <type>jar</type>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>9.1-901.jdbc4</version>
-    </dependency>
+  <dependency>
+    <groupId>com.oracle</groupId>
+    <artifactId>ojdbc6</artifactId>
+    <version>11.2.0.3</version>
+</dependency>
     <dependency>
       <groupId>commons-dbcp</groupId>
       <artifactId>commons-dbcp</artifactId>
@@ -295,7 +301,7 @@
         <version>1.0-beta-1</version>
         <configuration>
           <!-- <server> and <url> must be specified on the "mvn tomcat:redeploy" command line.  -->
-          <path>/${project.build.finalName}</path>
+          <path>/mapfishapp</path>
         </configuration>
       </plugin>
       <plugin>

@@ -60,15 +60,15 @@ public abstract class A_DocService {
     /**
      * Db connection pool (shared between services).
      */
-    protected ConnectionPool pgPool;
+    protected ConnectionPool dbPool;
 
 	/**
 	 * Sets pgPool (used for testing).
 	 *
 	 * @param pgPool
 	 */
-	public void setPgPool(ConnectionPool pgPool) {
-		this.pgPool = pgPool;
+	public void setDbPool(ConnectionPool dbPool) {
+		this.dbPool = dbPool;
 	}
 
 	/**
@@ -121,7 +121,7 @@ public abstract class A_DocService {
     public A_DocService(final String fileExtension, final String MIMEType,  final String docTempDirectory, ConnectionPool pgpool) {
         _fileExtension = fileExtension;
         _MIMEType = MIMEType;
-        pgPool = pgpool;
+        dbPool = pgpool;
         setTempDirectory(docTempDirectory);
     }
 
@@ -175,8 +175,14 @@ public abstract class A_DocService {
         Connection connection = null;
         PreparedStatement st = null;
         try {
-            connection = pgPool.getConnection();
-            st = connection.prepareStatement("INSERT INTO mapfishapp.geodocs (username, standard, raw_file_content, file_hash) VALUES (?,?,?,?);");
+            connection = dbPool.getConnection();
+            st = connection.prepareStatement("INSERT INTO mapfishapp.geodocs (username, standard, raw_file_content, file_hash) VALUES (?,?,?,?)");
+            
+            LOG.debug("username : " + username);
+            LOG.debug("standard : " + standard);
+            LOG.debug("_content : " + _content);
+            LOG.debug("hash : " + hash);
+            
             st.setString(1, username);
             st.setString(2, standard);
             st.setString(3, _content);
@@ -339,18 +345,18 @@ public abstract class A_DocService {
      * @return true: exists, false: not exists
      */
     private boolean isFileExist(final String fileName) throws SQLException, RuntimeException {
-        // test fileName to know if file is stored in db or file.
+       
+    	// test fileName to know if file is stored in db or file.
         if (fileName.length() == 4+32+DOC_PREFIX.length()) {
             // newest database storage
             ResultSet rs = null;
             PreparedStatement st = null;
             Connection connection = null;
 
-            boolean exists = false;
             int count = 0;
             try {
-                connection = pgPool.getConnection();
-                st = connection.prepareStatement("SELECT count(*)::integer from mapfishapp.geodocs WHERE file_hash = ?;");
+                connection = dbPool.getConnection();
+                st = connection.prepareStatement("SELECT count(id) from mapfishapp.geodocs WHERE file_hash = ?");
                 st.setString(1, fileName.substring(DOC_PREFIX.length(), DOC_PREFIX.length() + 32));
                 rs = st.executeQuery();
 
@@ -407,8 +413,8 @@ public abstract class A_DocService {
             PreparedStatement st = null;
             Connection connection = null;
             try {
-                connection = pgPool.getConnection();
-                st = connection.prepareStatement("SELECT raw_file_content from mapfishapp.geodocs WHERE file_hash = ?;");
+                connection = dbPool.getConnection();
+                st = connection.prepareStatement("SELECT raw_file_content from mapfishapp.geodocs WHERE file_hash = ?");
                 st.setString(1, hash);
                 rs = st.executeQuery();
 
@@ -417,7 +423,7 @@ public abstract class A_DocService {
                 }
 
                 // now that we have loaded the content, update the metadata fields
-                st = connection.prepareStatement("UPDATE mapfishapp.geodocs set last_access = now() , access_count = access_count + 1 WHERE file_hash = ?;");
+                st = connection.prepareStatement("UPDATE mapfishapp.geodocs set last_access = CURRENT_TIMESTAMP , access_count = access_count + 1 WHERE file_hash = ?");
                 st.setString(1, hash);
                 st.executeUpdate();
             }
