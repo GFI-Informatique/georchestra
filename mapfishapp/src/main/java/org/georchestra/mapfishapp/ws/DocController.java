@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.georchestra.commons.configuration.GeorchestraConfiguration;
-import org.georchestra.mapfishapp.model.ConnectionPool;
+import org.georchestra.mapfishapp.repository.GeodocsRepository;
 import org.georchestra.mapfishapp.ws.classif.ClassifierCommand;
 import org.georchestra.mapfishapp.ws.classif.SLDClassifier;
 import org.geotools.data.wfs.WFSDataStoreFactory;
@@ -59,10 +59,9 @@ public class DocController {
 
     @Autowired
     public GeorchestraConfiguration georchestraConfiguration;
-
-    /** the connection pool used by the document services*/
+    
     @Autowired
-    private ConnectionPool connectionPool;
+    public GeodocsRepository geodocsRepository;
 
     public void init() throws IOException {
         if (georchestraConfiguration.activated()) {
@@ -83,12 +82,6 @@ public class DocController {
 	public void setDocTempDir(String docTempDir) {
 	    this.docTempDir = docTempDir;
 	}
-
-
-	// needed for tests
-	public void setConnectionPool(ConnectionPool cp) {
-	    connectionPool = cp;
-    }
 
 	private WFSDataStoreFactory factory = new WFSDataStoreFactory();
 	public void setWFSDataStoreFactory(WFSDataStoreFactory fac) { factory = fac; }
@@ -150,7 +143,7 @@ public class DocController {
      */
     @RequestMapping(value="/wmc/", method=RequestMethod.POST)
     public void storeWMCFile(HttpServletRequest request, HttpServletResponse response) {
-        storeFile(new WMCDocService(this.docTempDir, this.connectionPool), WMC_URL, request, response);
+        storeFile(new WMCDocService(this.docTempDir, geodocsRepository), WMC_URL, request, response);
     }
 
     /**
@@ -160,7 +153,7 @@ public class DocController {
      */
     @RequestMapping(value="/wmc/*", method=RequestMethod.GET)
     public void getWMCFile(HttpServletRequest request, HttpServletResponse response) {
-        getFile(new WMCDocService(this.docTempDir, this.connectionPool), request, response);
+        getFile(new WMCDocService(this.docTempDir, geodocsRepository), request, response);
     }
 
     /*======================= KML =====================================================================*/
@@ -171,7 +164,7 @@ public class DocController {
      */
     @RequestMapping(value="/kml/", method=RequestMethod.POST)
     public void storeKMLFile(HttpServletRequest request, HttpServletResponse response) {
-        storeFile(new KMLDocService(this.docTempDir, this.connectionPool), KML_URL, request, response);
+        storeFile(new KMLDocService(this.docTempDir, geodocsRepository), KML_URL, request, response);
     }
 
     /**
@@ -181,7 +174,7 @@ public class DocController {
      */
     @RequestMapping(value="/kml/*", method=RequestMethod.GET)
     public void getKMLFile(HttpServletRequest request, HttpServletResponse response) {
-        getFile(new KMLDocService(this.docTempDir, this.connectionPool), request, response);
+        getFile(new KMLDocService(this.docTempDir, geodocsRepository), request, response);
     }
 
     /*======================= GML =====================================================================*/
@@ -192,7 +185,7 @@ public class DocController {
      */
     @RequestMapping(value="/gml/", method=RequestMethod.POST)
     public void storeGMLFile(HttpServletRequest request, HttpServletResponse response) {
-        storeFile(new GMLDocService(this.docTempDir, this.connectionPool), GML_URL, request, response);
+        storeFile(new GMLDocService(this.docTempDir, geodocsRepository), GML_URL, request, response);
     }
 
     /**
@@ -202,7 +195,7 @@ public class DocController {
      */
     @RequestMapping(value="/gml/*", method=RequestMethod.GET)
     public void getGMLFile(HttpServletRequest request, HttpServletResponse response) {
-        getFile(new GMLDocService(this.docTempDir, this.connectionPool), request, response);
+        getFile(new GMLDocService(this.docTempDir, geodocsRepository), request, response);
     }
 
     /*======================= JSON to CSV =====================================================================*/
@@ -213,7 +206,7 @@ public class DocController {
      */
     @RequestMapping(value="/csv/", method=RequestMethod.POST)
     public void storeCSVFile(HttpServletRequest request, HttpServletResponse response) {
-        storeFile(new CSVDocService(this.docTempDir, this.connectionPool), CSV_URL, request, response);
+        storeFile(new CSVDocService(this.docTempDir, geodocsRepository), CSV_URL, request, response);
     }
 
     /**
@@ -223,7 +216,7 @@ public class DocController {
      */
     @RequestMapping(value="/csv/*", method=RequestMethod.GET)
     public void getCSVFile(HttpServletRequest request, HttpServletResponse response) {
-        getFile(new CSVDocService(this.docTempDir, this.connectionPool), request, response);
+        getFile(new CSVDocService(this.docTempDir, geodocsRepository), request, response);
     }
 
     /*======================= SLD =====================================================================*/
@@ -239,7 +232,7 @@ public class DocController {
 
         if(request.getContentType().contains("application/vnd.ogc.sld+xml")) {
             // sld to store
-            storeFile(new SLDDocService(this.docTempDir, this.connectionPool), SLD_URL, request, response);
+            storeFile(new SLDDocService(this.docTempDir, geodocsRepository), SLD_URL, request, response);
         }
         else if(request.getContentType().contains("application/json") || request.getContentType().contains("text/json")) {
             // classification based on client request
@@ -257,7 +250,7 @@ public class DocController {
      */
     @RequestMapping(value="/sld/*", method=RequestMethod.GET)
     public void getSLDFile(HttpServletRequest request, HttpServletResponse response) {
-        getFile(new SLDDocService(this.docTempDir, this.connectionPool), request, response);
+        getFile(new SLDDocService(this.docTempDir, geodocsRepository), request, response);
     }
 
     /*=======================Private Methods==========================================================================*/
@@ -272,7 +265,7 @@ public class DocController {
             		factory);
 
             // save SLD content under a file
-            SLDDocService service = new SLDDocService(this.docTempDir, this.connectionPool);
+            SLDDocService service = new SLDDocService(this.docTempDir, geodocsRepository);
             String fileName = service.saveData(c.getSLD(), request.getHeader("sec-username"));
 
             PrintWriter out = response.getWriter();
@@ -461,5 +454,13 @@ public class DocController {
             }
         }
     }
+
+	/**
+	 * use  for test
+	 * @param geodocsRepository
+	 */
+	public void setGeodocsRepository(GeodocsRepository geodocsRepository) {
+		this.geodocsRepository = geodocsRepository;
+	}
 
 }

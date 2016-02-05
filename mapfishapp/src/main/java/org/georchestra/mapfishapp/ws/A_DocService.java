@@ -11,10 +11,8 @@ import java.io.StringReader;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +24,8 @@ import javax.xml.validation.Validator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.georchestra.mapfishapp.model.ConnectionPool;
+import org.georchestra.mapfishapp.model.Geodocs;
+import org.georchestra.mapfishapp.repository.GeodocsRepository;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -44,6 +43,7 @@ import org.xml.sax.SAXException;
  */
 
 public abstract class A_DocService {
+	
 
     protected static final Log LOG = LogFactory.getLog(A_DocService.class.getPackage().getName());
 
@@ -58,18 +58,9 @@ public abstract class A_DocService {
     protected String _fileExtension;
 
     /**
-     * Db connection pool (shared between services).
+     * JAP CRUD for geodocs
      */
-    protected ConnectionPool pgPool;
-
-	/**
-	 * Sets pgPool (used for testing).
-	 *
-	 * @param pgPool
-	 */
-	public void setPgPool(ConnectionPool pgPool) {
-		this.pgPool = pgPool;
-	}
+	private GeodocsRepository geodocsRepository;
 
 	/**
      * MIME type.
@@ -117,14 +108,22 @@ public abstract class A_DocService {
      * @param fileExtension
      * @param MIMEType
      * @param docTempDirectory
+     * @param geodocsRepository 
      */
-    public A_DocService(final String fileExtension, final String MIMEType,  final String docTempDirectory, ConnectionPool pgpool) {
+    public A_DocService(final String fileExtension, final String MIMEType,  final String docTempDirectory, final GeodocsRepository geodocsRepository) {
         _fileExtension = fileExtension;
         _MIMEType = MIMEType;
-        pgPool = pgpool;
+        this.geodocsRepository = geodocsRepository;
         setTempDirectory(docTempDirectory);
     }
 
+    /**
+     * 
+     * @param data
+     * @return
+     * @throws JDOMException
+     * @throws IOException
+     */
     private String indentData(String data) throws JDOMException, IOException {
         SAXBuilder sb = new SAXBuilder();
         sb.setExpandEntities(false);
@@ -133,6 +132,7 @@ public abstract class A_DocService {
         xop.setFormat(Format.getPrettyFormat());
         return xop.outputString(doc);
     }
+    
     /**
      * Store the given data
      * @param data raw data to be stored
@@ -171,24 +171,9 @@ public abstract class A_DocService {
         // extract standard
         String standard = _fileExtension.substring(1);
 
-        // write data to Db
-        Connection connection = null;
-        PreparedStatement st = null;
-        try {
-            connection = pgPool.getConnection();
-            st = connection.prepareStatement("INSERT INTO mapfishapp.geodocs (username, standard, raw_file_content, file_hash) VALUES (?,?,?,?)");
-            st.setString(1, username);
-            st.setString(2, standard);
-            st.setString(3, _content);
-            st.setString(4, hash);
-            st.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (st != null) try { st.close(); } catch (SQLException e) {LOG.error(e);}
-            if (connection != null) try { connection.close(); } catch (SQLException e) {LOG.error(e);}
-        }
+        Geodocs geodocs = new Geodocs(username, standard, _content, hash);
+        
+       	geodocsRepository.save(geodocs);
 
         return DOC_PREFIX + hash + _fileExtension;
     }
@@ -341,29 +326,9 @@ public abstract class A_DocService {
     private boolean isFileExist(final String fileName) throws SQLException, RuntimeException {
         // test fileName to know if file is stored in db or file.
         if (fileName.length() == 4+32+DOC_PREFIX.length()) {
-            // newest database storage
-            ResultSet rs = null;
-            PreparedStatement st = null;
-            Connection connection = null;
 
-            boolean exists = false;
-            int count = 0;
-            try {
-                connection = pgPool.getConnection();
-                st = connection.prepareStatement("SELECT count(id) from mapfishapp.geodocs WHERE file_hash = ?");
-                st.setString(1, fileName.substring(DOC_PREFIX.length(), DOC_PREFIX.length() + 32));
-                rs = st.executeQuery();
-
-                if (rs.next()) {
-                    count = rs.getInt(1);
-                }
-            } catch(SQLException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if (rs != null) try { rs.close(); } catch (SQLException e) {LOG.error(e);}
-                if (st != null) try { st.close(); } catch (SQLException e) {LOG.error(e);}
-                if (connection != null) try { connection.close(); } catch (SQLException e) {LOG.error(e);}
-            }
+            int count = 0;    
+           	count = geodocsRepository.countByHash(fileName.substring(DOC_PREFIX.length(), DOC_PREFIX.length() + 32));
 
             return count > 0;
 
@@ -402,33 +367,14 @@ public abstract class A_DocService {
         // test fileName to know if the file is stored in db or file.
         if (fileName.length() == 4+32+DOC_PREFIX.length()) {
             String hash = fileName.substring(DOC_PREFIX.length(), DOC_PREFIX.length() + 32);
-            // newest database storage
-            ResultSet rs = null;
-            PreparedStatement st = null;
-            Connection connection = null;
-            try {
-                connection = pgPool.getConnection();
-                st = connection.prepareStatement("SELECT raw_file_content from mapfishapp.geodocs WHERE file_hash = ?");
-                st.setString(1, hash);
-                rs = st.executeQuery();
-
-                if (rs.next()) {
-                    content = rs.getString(1);
-                }
-
-                // now that we have loaded the content, update the metadata fields
-                st = connection.prepareStatement("UPDATE mapfishapp.geodocs set last_access = CURRENT_TIMESTAMP , access_count = access_count + 1 WHERE file_hash = ?");
-                st.setString(1, hash);
-                st.executeUpdate();
-            }
-            catch (SQLException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if (rs != null) try { rs.close(); } catch (SQLException e) {LOG.error(e);}
-                if (st != null) try { st.close(); } catch (SQLException e) {LOG.error(e);}
-                if (connection != null) try { connection.close(); } catch (SQLException e) {LOG.error(e);}
-            }
-
+            
+           Geodocs geodocs = geodocsRepository.findByHash(hash);
+    
+           geodocs.setLastAccess(new Date());
+           geodocs.setAccessCount(geodocs.getAccessCount() + 1);
+  
+           content = geodocs.getRawFileContent(); 
+           geodocsRepository.save(geodocs);
         } else {
             // plain old "file" storage
             File file = new File(_tempDirectory + File.separatorChar + fileName);

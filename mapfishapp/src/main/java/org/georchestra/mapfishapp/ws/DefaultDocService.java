@@ -1,6 +1,6 @@
 package org.georchestra.mapfishapp.ws;
 
-import org.georchestra.mapfishapp.model.ConnectionPool;
+import org.georchestra.mapfishapp.repository.GeodocsRepository;
 
 /**
  * This is a convenient class that provides a basic DocService.
@@ -20,8 +20,8 @@ public class DefaultDocService extends A_DocService {
 	 * @param tempDir
 	 */
 	@SuppressWarnings("unused")
-    private DefaultDocService(final String tempDir, ConnectionPool pgpool) {
-        super("", "", tempDir, pgpool);
+    private DefaultDocService(final String tempDir, final GeodocsRepository geodocsRepository) {
+        super("", "", tempDir, geodocsRepository);
     }
     
     /**
@@ -32,8 +32,8 @@ public class DefaultDocService extends A_DocService {
      * @param MIMEType
      * @param tempDir
      */
-    public DefaultDocService(final String fileExtension, final String MIMEType, final String tempDir, ConnectionPool pgpool ) {
-        super(fileExtension, MIMEType, tempDir, pgpool);
+    public DefaultDocService(final String fileExtension, final String MIMEType, final String tempDir, final GeodocsRepository geodocsRepository) {
+        super(fileExtension, MIMEType, tempDir, geodocsRepository);
     }
 
 }

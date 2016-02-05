@@ -9,11 +9,15 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 
 import org.apache.commons.lang.StringUtils;
+import org.georchestra.mapfishapp.repository.GeodocsRepository;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
 public class WMCDocServiceTest {
-
+	
+	 GeodocsRepository geodocsRepository = Mockito.mock(GeodocsRepository.class);  
 
     @Test
     public void testXEEOnExtractRealFileName() {
@@ -25,7 +29,7 @@ public class WMCDocServiceTest {
                 +"<wmc><Title>&xxe;</Title></wmc>";
 
 
-        WMCDocService wmcds = new WMCDocService("xml", null) {};
+        WMCDocService wmcds = new WMCDocService("xml", geodocsRepository) {};
 
         Method erfn = ReflectionUtils.findMethod(wmcds.getClass(), "extractRealFileName", InputStream.class);
         erfn.setAccessible(true);

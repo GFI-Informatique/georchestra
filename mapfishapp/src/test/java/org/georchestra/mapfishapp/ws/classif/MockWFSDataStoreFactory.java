@@ -46,6 +46,7 @@ public class MockWFSDataStoreFactory extends WFSDataStoreFactory {
 
 		return mockDs; 
 	}
+	
     private class MockFeatureIterator implements SimpleFeatureIterator {
     	private int count = 0;
     	

@@ -4,8 +4,10 @@
 instance=@shared.instance.name@
 language=@shared.language@
 
-
-jdbcUrl=@shared.mapfishapp.jdbcurl@?user=@shared.psql.user@&amp;password=@shared.psql.pass@
+jdbc.url=@shared.mapfishapp.jdbcurl@
+jdbc.username=@shared.psql.user@
+jdbc.password=@shared.psql.pass@
+jdbc.dialect=org.hibernate.dialect.Oracle10gDialect
 
 
 #you can provide multiple entries

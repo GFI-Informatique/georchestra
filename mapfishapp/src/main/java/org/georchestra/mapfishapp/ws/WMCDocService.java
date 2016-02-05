@@ -7,7 +7,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang.StringUtils;
-import org.georchestra.mapfishapp.model.ConnectionPool;
+import org.georchestra.mapfishapp.repository.GeodocsRepository;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -27,8 +27,8 @@ public class WMCDocService extends A_DocService {
     public static final String MIME_TYPE = "application/vnd.ogc.context+xml";
     public static final String SCHEMA_URL = "http://schemas.opengis.net/context/1.1.0/context.xsd";
 
-    public WMCDocService(final String tempDir, ConnectionPool pgpool) {
-        super(FILE_EXTENSION, MIME_TYPE, tempDir, pgpool);
+    public WMCDocService(final String tempDir, final GeodocsRepository geodocsRepository) {
+        super(FILE_EXTENSION, MIME_TYPE, tempDir, geodocsRepository);
     }
 
     /*=================================Overridden methods===============================================*/

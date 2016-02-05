@@ -1,5 +1,6 @@
 package org.georchestra.mapfishapp.ws;
-import org.georchestra.mapfishapp.model.ConnectionPool;
+
+import org.georchestra.mapfishapp.repository.GeodocsRepository;
 
 /**
  * This service handles the storage and the loading of a KML file on a temporary directory.
@@ -13,8 +14,8 @@ public class KMLDocService extends A_DocService {
     public static final String FILE_EXTENSION = ".kml";
     public static final String MIME_TYPE = "application/vnd.google-earth.kml+xml";
 
-    public KMLDocService(final String tempDir, ConnectionPool pgpool) {
-        super(FILE_EXTENSION, MIME_TYPE, tempDir, pgpool);
+    public KMLDocService(final String tempDir, final GeodocsRepository geodocsRepository) {
+        super(FILE_EXTENSION, MIME_TYPE, tempDir, geodocsRepository);
     }
 
     /**
