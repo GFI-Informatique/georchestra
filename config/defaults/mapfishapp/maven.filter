@@ -7,7 +7,8 @@ language=@shared.language@
 jdbc.url=@shared.mapfishapp.jdbcurl@
 jdbc.username=@shared.psql.user@
 jdbc.password=@shared.psql.pass@
-jdbc.dialect=org.hibernate.dialect.Oracle10gDialect
+jdbc.driver=org.postgresql.Driver
+jdbc.hibernate.dialect=org.hibernate.dialect.PostgreSQL94Dialect
 
 
 #you can provide multiple entries

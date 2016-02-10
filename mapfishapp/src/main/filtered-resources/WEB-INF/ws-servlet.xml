@@ -71,21 +71,18 @@
     <bean id="addonController" class="org.georchestra.mapfishapp.ws.AddonController" />
 
     <bean id="wxsController" class="org.georchestra.mapfishapp.ws.WxsJsonController" />
-    
-  <!--  <bean id="dataSource" class="${jdbc.datasource}" destroy-method="close">
-        <property name="URL" value="${jdbc.url}" />
-        <property name="user" value="${jdbc.username}"/>
+       
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="url" value="${psql.url}"/>
+        <property name="username" value="${jdbc.username}"/>
         <property name="password" value="${jdbc.password}"/>
-        <property name="connectionCachingEnabled" value="true"/>
-    </bean> -->
-    
-    <bean id="dataSource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close">
-        <property name="URL" value="jdbc:oracle:thin:@172.16.73.117:1521:ORA1101" />
-        <property name="user" value="mapfishappdev"/>
-        <property name="password" value="georchestradb"/>
-        <property name="connectionCachingEnabled" value="true"/>
-    </bean>
-    
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="poolPreparedStatements" value="true"/>
+        <property name="maxOpenPreparedStatements" value="-1"/>
+        <property name="defaultReadOnly" value="false"/>
+        <property name="defaultAutoCommit" value="true"/>
+    </bean>   
     
 	<!-- ============================= -->
 	<!-- ENTITY MANAGER -->
@@ -101,8 +98,7 @@
 			<props>
 
 				<!-- dialect -->
-				<!--  <prop key="hibernate.dialect">${jdbc.dialect}</prop> -->
-				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+				<prop key="hibernate.dialect">${jdbc.hibernate.dialect}</prop>
 				<prop key="hibernate.connection.useUnicode">true</prop>
 				<prop key="hibernate.connection.charSet">UTF-8</prop>
 

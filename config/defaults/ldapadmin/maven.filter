@@ -28,6 +28,8 @@ protectedUser.uid1=@shared.privileged.geoserver.user@
 psql.url=@shared.ldapadmin.jdbcurl@
 psql.user=@shared.psql.user@
 psql.pass=@shared.psql.pass@
+psql.driver=org.postgresql.Driver
+psql.hibernate.dialect=org.hibernate.dialect.PostgreSQL94Dialect
 
 # Email properties
 smtpHost=@shared.smtp.host@
