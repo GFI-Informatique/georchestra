@@ -6,17 +6,20 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Scanner;
 
-import org.georchestra.mapfishapp.model.Geodocs;
 import org.georchestra.mapfishapp.repository.GeodocsRepository;
 import org.georchestra.mapfishapp.ws.classif.MockWFSDataStoreFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
 
 
@@ -31,11 +34,14 @@ import org.springframework.util.ReflectionUtils;
  *
  */
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations={"classpath:**/test-ws-servlet.xml"})
 public class DocControllerTest {
 
     private static final String DOMAIN_NAME = "mapfishapp/";
     
-    GeodocsRepository mockGeodocsRepository = Mockito.mock(GeodocsRepository.class);   
+    @Autowired
+    GeodocsRepository mockGeodocsRepository;   
     
     private DocController _controller = new DocController();
 
@@ -83,13 +89,10 @@ public class DocControllerTest {
      */
     @Test
     public void testWMCService() throws Exception {
-    	
-    	Mockito.when(mockGeodocsRepository.countByHash(Mockito.anyString())).thenReturn(1);
-    	Mockito.when(mockGeodocsRepository.findByHash(Mockito.anyString())).thenReturn(new Geodocs());
 
-        // valid wmc file content
-        String fileContent = "<ViewContext xmlns=\"http://www.opengis.net/context\" version=\"1.1.0\" id=\"OpenLayers_Context_133\" xsi:schemaLocation=\"http://www.opengis.net/context http://schemas.opengis.net/context/1.1.0/context.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><General><Window width=\"1233\" height=\"342\"/><BoundingBox minx=\"-201405.7589\" miny=\"2245252.767\" maxx=\"598866.8058\" maxy=\"2467226.179\" SRS=\"EPSG:2154\"/><Title/><Extension><ol:maxExtent xmlns:ol=\"http://openlayers.org/context\" minx=\"47680.03567\" miny=\"2267644.975\" maxx=\"349781.0112\" maxy=\"2444833.970\"/></Extension></General><LayerList><Layer queryable=\"0\" hidden=\"0\"><Server service=\"OGC:WMS\" version=\"1.1.1\"><OnlineResource xlink:type=\"simple\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"http://drebretagne-geobretagne.int.lsn.camptocamp.com/geoserver/wms\"/></Server><Name>topp:communes_geofla</Name><Title>communes_geofla</Title><FormatList><Format current=\"1\">image/jpeg</Format></FormatList><StyleList><Style current=\"1\"><Name/><Title>Default</Title></Style></StyleList><Extension><ol:maxExtent xmlns:ol=\"http://openlayers.org/context\" minx=\"47680.03567\" miny=\"2267644.975\" maxx=\"349781.0112\" maxy=\"2444833.970\"/><ol:numZoomLevels xmlns:ol=\"http://openlayers.org/context\">16</ol:numZoomLevels><ol:units xmlns:ol=\"http://openlayers.org/context\">m</ol:units><ol:isBaseLayer xmlns:ol=\"http://openlayers.org/context\">true</ol:isBaseLayer><ol:displayInLayerSwitcher xmlns:ol=\"http://openlayers.org/context\">true</ol:displayInLayerSwitcher><ol:singleTile xmlns:ol=\"http://openlayers.org/context\">false</ol:singleTile></Extension></Layer></LayerList></ViewContext>"; // wmc file to be send
-
+    	// valid wmc file content
+        String fileContent = "<ViewContext xmlns=\"http://www.opengis.net/context\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.1.0\" id=\"OpenLayers_Context_133\" xsi:schemaLocation=\"http://www.opengis.net/context http://schemas.opengis.net/context/1.1.0/context.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><General><Window width=\"1233\" height=\"342\"/><BoundingBox minx=\"-201405.7589\" miny=\"2245252.767\" maxx=\"598866.8058\" maxy=\"2467226.179\" SRS=\"EPSG:2154\"/><Title/><Extension><ol:maxExtent xmlns:ol=\"http://openlayers.org/context\" minx=\"47680.03567\" miny=\"2267644.975\" maxx=\"349781.0112\" maxy=\"2444833.970\"/></Extension></General><LayerList><Layer queryable=\"0\" hidden=\"0\"><Server service=\"OGC:WMS\" version=\"1.1.1\"><OnlineResource xlink:type=\"simple\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"http://drebretagne-geobretagne.int.lsn.camptocamp.com/geoserver/wms\"/></Server><Name>topp:communes_geofla</Name><Title>communes_geofla</Title><FormatList><Format current=\"1\">image/jpeg</Format></FormatList><StyleList><Style current=\"1\"><Name/><Title>Default</Title></Style></StyleList><Extension><ol:maxExtent xmlns:ol=\"http://openlayers.org/context\" minx=\"47680.03567\" miny=\"2267644.975\" maxx=\"349781.0112\" maxy=\"2444833.970\"/><ol:numZoomLevels xmlns:ol=\"http://openlayers.org/context\">16</ol:numZoomLevels><ol:units xmlns:ol=\"http://openlayers.org/context\">m</ol:units><ol:isBaseLayer xmlns:ol=\"http://openlayers.org/context\">true</ol:isBaseLayer><ol:displayInLayerSwitcher xmlns:ol=\"http://openlayers.org/context\">true</ol:displayInLayerSwitcher><ol:singleTile xmlns:ol=\"http://openlayers.org/context\">false</ol:singleTile></Extension></Layer></LayerList></ViewContext>"; // wmc file to be send
+        
         _requestPost.setRequestURI(DOMAIN_NAME + DocController.WMC_URL); // fake URI, Rest style
         _requestPost.setContent(fileContent.getBytes()); // fake body containing wmc file
 
@@ -109,8 +112,12 @@ public class DocControllerTest {
 
         _controller.getWMCFile(_requestGet, _responseGet);
         assertEquals(200, _responseGet.getStatus()); // 200 OK
-        assertEquals(fileContent, _responseGet.getContentAsString().trim()); // content sent is
-                                                                               // back
+        
+        String resultContent = _responseGet.getContentAsString().trim();
+        
+        // Remove all return and end line char
+        resultContent = resultContent.replaceAll("\r\n", "");
+        assertEquals(fileContent, resultContent); // content sent is back
     }
 
     /**
@@ -120,10 +127,7 @@ public class DocControllerTest {
      */
     @Test
     public void testCSVService() throws Exception {
-    	
-    	Mockito.when(mockGeodocsRepository.countByHash(Mockito.anyString())).thenReturn(1);
-    	Mockito.when(mockGeodocsRepository.findByHash(Mockito.anyString())).thenReturn(new Geodocs());
-   	
+	
         // json file to be send
         JSONObject JSONContent = new JSONObject().put("columns", new JSONArray().put("col1").put("col2"))
                 .put("data",
@@ -164,13 +168,10 @@ public class DocControllerTest {
      */
     @Test
     public void testSLDService() throws Exception {
-    	
-    	Mockito.when(mockGeodocsRepository.countByHash(Mockito.anyString())).thenReturn(1);
-    	Mockito.when(mockGeodocsRepository.findByHash(Mockito.anyString())).thenReturn(new Geodocs());
 
         // valid sld file
-        String sldContent = "<StyledLayerDescriptor version=\"1.1.0\" xsi:schemaLocation=\"http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd\" xmlns=\"http://www.opengis.net/sld\" xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:se=\"http://www.opengis.net/se\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"> <NamedLayer><se:Name>OCEANSEA_1M:Foundation</se:Name><UserStyle><se:Name>GEOSYM</se:Name><IsDefault>1</IsDefault><se:FeatureTypeStyle><se:FeatureTypeName>Foundation</se:FeatureTypeName><se:Rule><se:Name>main</se:Name><se:PolygonSymbolizer uom=\"http://www.opengis.net/sld/units/pixel\"><se:Name>MySymbol</se:Name><se:Description><se:Title>Example Symbol</se:Title><se:Abstract>This is just a simple example.</se:Abstract></se:Description><se:Geometry><ogc:PropertyName>GEOMETRY</ogc:PropertyName></se:Geometry><se:Fill><se:SvgParameter name=\"fill\">#96C3F5</se:SvgParameter></se:Fill></se:PolygonSymbolizer></se:Rule></se:FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>";
-
+        String sldContent = "<StyledLayerDescriptor version=\"1.1.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd\" xmlns=\"http://www.opengis.net/sld\" xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:se=\"http://www.opengis.net/se\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"> <NamedLayer><se:Name>OCEANSEA_1M:Foundation</se:Name><UserStyle><se:Name>GEOSYM</se:Name><IsDefault>1</IsDefault><se:FeatureTypeStyle><se:FeatureTypeName>Foundation</se:FeatureTypeName><se:Rule><se:Name>main</se:Name><se:PolygonSymbolizer uom=\"http://www.opengis.net/sld/units/pixel\"><se:Name>MySymbol</se:Name><se:Description><se:Title>Example Symbol</se:Title><se:Abstract>This is just a simple example.</se:Abstract></se:Description><se:Geometry><ogc:PropertyName>GEOMETRY</ogc:PropertyName></se:Geometry><se:Fill><se:SvgParameter name=\"fill\">#96C3F5</se:SvgParameter></se:Fill></se:PolygonSymbolizer></se:Rule></se:FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>";
+        
         _requestPost.setRequestURI(DOMAIN_NAME + DocController.SLD_URL); // fake URI, Rest style
         _requestPost.setContent(sldContent.getBytes()); // fake body containing sld file
         _requestPost.setContentType("application/vnd.ogc.sld+xml");
@@ -191,7 +192,11 @@ public class DocControllerTest {
 
         _controller.getSLDFile(_requestGet, _responseGet);
         assertEquals(200, _responseGet.getStatus()); // 200 OK
-        assertEquals(sldContent, _responseGet.getContentAsString().trim()); // content sent is
+        
+        String resultContent = _responseGet.getContentAsString().trim();
+        // Remove all return and end line char
+        resultContent = resultContent.replaceAll("\r\n", "");
+        assertEquals(sldContent, resultContent); // content sent is
                                                                                // back
     }
 
@@ -227,8 +232,6 @@ public class DocControllerTest {
     @Test
     public void testIndentDataXee() throws Exception {
 
-    	Mockito.when(mockGeodocsRepository.save(Mockito.any(Geodocs.class))).thenReturn(new Geodocs());
-    	
         assumeTrue("file does not exist, which is unlikely if you are running the testsuite under linux. Skipping test",
                 new File("/etc/passwd").exists());
 
