@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ViewContext xmlns="http://www.opengis.net/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.1.0" id="OpenLayers_Context_133" xsi:schemaLocation="http://www.opengis.net/context http://schemas.opengis.net/context/1.1.0/context.xsd">
+  <General>
+    <Window width="1233" height="342" />
+    <BoundingBox minx="-201405.7589" miny="2245252.767" maxx="598866.8058" maxy="2467226.179" SRS="EPSG:2154" />
+    <Title />
+    <Extension>
+      <ol:maxExtent xmlns:ol="http://openlayers.org/context" minx="47680.03567" miny="2267644.975" maxx="349781.0112" maxy="2444833.970" />
+    </Extension>
+  </General>
+  <LayerList>
+    <Layer queryable="0" hidden="0">
+      <Server service="OGC:WMS" version="1.1.1">
+        <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://drebretagne-geobretagne.int.lsn.camptocamp.com/geoserver/wms" />
+      </Server>
+      <Name>topp:communes_geofla</Name>
+      <Title>communes_geofla</Title>
+      <FormatList>
+        <Format current="1">image/jpeg</Format>
+      </FormatList>
+      <StyleList>
+        <Style current="1">
+          <Name />
+          <Title>Default</Title>
+        </Style>
+      </StyleList>
+      <Extension>
+        <ol:maxExtent xmlns:ol="http://openlayers.org/context" minx="47680.03567" miny="2267644.975" maxx="349781.0112" maxy="2444833.970" />
+        <ol:numZoomLevels xmlns:ol="http://openlayers.org/context">16</ol:numZoomLevels>
+        <ol:units xmlns:ol="http://openlayers.org/context">m</ol:units>
+        <ol:isBaseLayer xmlns:ol="http://openlayers.org/context">true</ol:isBaseLayer>
+        <ol:displayInLayerSwitcher xmlns:ol="http://openlayers.org/context">true</ol:displayInLayerSwitcher>
+        <ol:singleTile xmlns:ol="http://openlayers.org/context">false</ol:singleTile>
+      </Extension>
+    </Layer>
+  </LayerList>
+</ViewContext>
