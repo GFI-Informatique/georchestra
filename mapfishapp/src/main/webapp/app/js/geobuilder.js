@@ -483,6 +483,10 @@ geobuilder = (function() {
 		Fusion.setSelection(sel)
 
 	}
+	
+	function getMapProjection() {
+		return Fusion.getMap().projection
+	}
 
 	function showMap() {
 		//hideWorkPlace()
@@ -548,6 +552,7 @@ geobuilder = (function() {
 	window.getLayersGroups = getLayersGroups
 	window.ZoomEnsemble = ZoomEnsemble
 	window.showMap = showMap
+	window.getMapProjection = getMapProjection
 
 	/*
 	 * setMenuContent est utilisée par menuintra.cfm mais l'affichage des menus
