@@ -11,6 +11,7 @@ geobuilder = (function() {
 	var geoApiInitialized = false
 	var geoApiDigitizingLayer = null
 	var geoApiDrawControls = {}
+	var layerProjectionCode = ""
 
 	var map = null
 
@@ -484,8 +485,25 @@ geobuilder = (function() {
 
 	}
 	
-	function getMapProjection() {
-		return Fusion.getMap().projection
+	function setLayerProjection(idObj) {
+		
+		var layer = JSON.stringify({
+			lstIdObj: idObj
+		})
+		var layerProj = ""
+		var projectionCode = ""
+		getJSON(Fusion.getFusionURL() + 'cfm/api.cfm/geochestra.json', layer, function(data) {
+			for (i=0; i<data.features.length; i++){
+				layerProj = data.features[i].projection
+			}
+			if (layerProj != ""){
+				projectionCode = 'EPSG:' + layerProj
+			}
+			this.layerProjectionCode = projectionCode
+
+		}, function(status) {
+			alert('Something went wrong.')
+		})
 	}
 
 	function showMap() {
@@ -552,7 +570,7 @@ geobuilder = (function() {
 	window.getLayersGroups = getLayersGroups
 	window.ZoomEnsemble = ZoomEnsemble
 	window.showMap = showMap
-	window.getMapProjection = getMapProjection
+	window.setLayerProjection = setLayerProjection
 
 	/*
 	 * setMenuContent est utilisée par menuintra.cfm mais l'affichage des menus
@@ -683,12 +701,20 @@ geobuilder = (function() {
 	}
 
 	function geoApiCallHandler(evt) {
-		wkt = new OpenLayers.Format.WKT()
-		//alert(wkt.write(evt.feature))
+		//gestion des projection
+		if (layerProjectionCode != "") {
+			var in_options = { 'internalProjection': new OpenLayers.Projection(Fusion.getMap().projection), 'externalProjection': new OpenLayers.Projection(layerProjectionCode)}
+			wkt = new OpenLayers.Format.WKT(in_options)
+			alert(wkt.write(evt.feature))
+		}
+		else {
+			wkt = new OpenLayers.Format.WKT()
+			alert(wkt.write(evt.feature))
+		}
 		this.userHandler(wkt.write(evt.feature))
 		window.setTimeout(geoApiDeactivate, 100)
 
-		return false;
+		return false
 	}
 
 	function geoApiDeactivate() {
