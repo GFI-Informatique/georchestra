@@ -1,0 +1,63 @@
+.addon-traveler {
+  background-image: url(../img/icon.png) !important;
+}
+
+.walkBtn {
+	background-image: url(../img/walk-btn.png);
+	width: 24px !important;
+	height: 24px !important;
+}
+
+.carBtn {
+	background-image: url(../img/car-btn.png);
+	height: 24px !important;
+	width: 24px !important;
+}
+
+
+.walkStyle .x-btn-mr, .walkStyle .x-btn-ml, .walkStyle .x-btn-tr, .walkStyle .x-btn-tl, .walkStyle .x-btn-bc, .walkStyle .x-btn-tc,.walkStyle .x-btn-bl,.walkStyle .x-btn-br,
+.carStyle .x-btn-mr, .carStyle .x-btn-ml, .carStyle .x-btn-tr, .carStyle .x-btn-tl, .carStyle .x-btn-bc, .carStyle .x-btn-tc,.carStyle .x-btn-bl,.carStyle .x-btn-br  {
+	border:none;
+}
+
+.carStyle, .walkStyle {
+	padding-top: 3px;
+	background-color: white;
+}
+
+
+.car-over {
+	background-image: url(../img/car-over.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
+}
+
+.car-pressed {
+	background-image: url(../img/car-selected.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
+}
+
+.walk-over {
+	background-image: url(../img/walk-over.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
+}
+
+.walk-pressed {
+	background-image: url(../img/walk-selected.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
+}
+
+#carBtn:hover, #walkBtn:hover, #carBtn:active, #walkBtn:active, .carStyle .x-btn-pressed {
+	background-color: white !important;
+}
+
+.carStyle .x-btn-pressed{
+	background-color: white !important;
+}

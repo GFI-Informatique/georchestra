@@ -1,0 +1,17 @@
+[{
+        "id": "traveler_0",
+        "name": "traveler",
+        "enabled": true,
+        "preloaded":true,
+        "title": {
+            "en": "Route calculation",
+            "es": "Cálculo de ruta",
+            "fr": "Calcul d'itinéraire"
+        },
+        "description": {
+            "en": "Route calculation with the web service of Geoportail (IGN)",
+            "es": "Route calculation with the web service of Geoportail (IGN)",
+            "fr": "Calcul d'itinéraire avec le web service du Géoportail (IGN)"
+        },
+        "options": {}
+}]

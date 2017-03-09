@@ -1,0 +1,23 @@
+{
+    "js": [
+        "js/main.js"
+    ],
+    "css": [
+        "css/main.css"
+    ],
+    "default_options": {
+    	"limitResponse":5,
+    	"geocodeServiceUrl":"https://api-adresse.data.gouv.fr/search/?",
+    	"maxScaleLevel":14
+    },
+    "i18n": {
+        "en": {
+        	"traveler.window_title":"Route calculation"
+
+        },        
+        "fr": {
+        	"traveler.window_title":"Calcul d'itinéraire"
+        } 
+    }
+}
+
