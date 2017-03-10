@@ -16,7 +16,8 @@
 
 
 .walkStyle .x-btn-mr, .walkStyle .x-btn-ml, .walkStyle .x-btn-tr, .walkStyle .x-btn-tl, .walkStyle .x-btn-bc, .walkStyle .x-btn-tc,.walkStyle .x-btn-bl,.walkStyle .x-btn-br,
-.carStyle .x-btn-mr, .carStyle .x-btn-ml, .carStyle .x-btn-tr, .carStyle .x-btn-tl, .carStyle .x-btn-bc, .carStyle .x-btn-tc,.carStyle .x-btn-bl,.carStyle .x-btn-br  {
+.carStyle .x-btn-mr, .carStyle .x-btn-ml, .carStyle .x-btn-tr, .carStyle .x-btn-tl, .carStyle .x-btn-bc, .carStyle .x-btn-tc,.carStyle .x-btn-bl,.carStyle .x-btn-br,
+.actionBtn .x-btn-mr, .actionBtn .x-btn-ml, .actionBtn .x-btn-tr, .actionBtn .x-btn-tl, .actionBtn .x-btn-bc, .actionBtn .x-btn-tc,.actionBtn .x-btn-bl,.actionBtn .x-btn-br{
 	border:none;
 }
 
@@ -27,21 +28,21 @@
 
 
 .car-over {
-	background-image: url(../img/car-over.png);	
+	background-image: url(../img/car-hover-bis.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
 }
 
 .car-pressed {
-	background-image: url(../img/car-selected.png);	
+	background-image: url(../img/car-hover-bis.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
 }
 
 .walk-over {
-	background-image: url(../img/walk-over.png);	
+	background-image: url(../img/walk-hover-bis.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
@@ -54,10 +55,29 @@
 	background-color: white !important ;
 }
 
-#carBtn:hover, #walkBtn:hover, #carBtn:active, #walkBtn:active, .carStyle .x-btn-pressed {
-	background-color: white !important;
+#carBtn:hover, #walkBtn:hover, #carBtn:active, .actionBtn:hover, .actionBtn:hover, .actionBtn:hover .x-btn-text,
+#walkBtn:active, .carStyle .x-btn-pressed {
+	background-color: rgba(255,255,255,0) !important;
 }
 
 .carStyle .x-btn-pressed{
 	background-color: white !important;
 }
+
+
+.fieldBtn .x-btn-noicon,.fieldBtn .x-btn-small,.fieldBtn .x-btn-text {
+	height:14px !important;
+}
+
+.gpsIcon {
+	background-image: url(../img/16px/gps-blue.png);
+	background-repeat:no-repeat;
+	margin-left:-38px !important;	
+}
+
+.addIcon {
+	background-image: url(../img/16px/add-white.png);
+	background-repeat:no-repeat;
+	margin-left:-10px !important;	
+}
+
