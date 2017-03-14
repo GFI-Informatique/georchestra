@@ -361,47 +361,16 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      * Parameters:
      * record - {Ext.data.record} a record with the addon parameters
      */
-    init: function(record) {
-    	
-    	var map, pointControlOptions, pointControl;
+    init: function(record) {    	
     	
     	var layerAddon = this.layer();
-    	
-    	var lastFsetUse,lastFieldUse;    	
-    	
-    	var vecStr = "vec_";    	    
-    	
-    	var featureArray = this.featureArray;
-    	
-    	console.log(this.featureArray);
-    	
+    	    	    	
+    	var featureArray = this.featureArray;    	    
     	
     	var travelerAddon = this;
-    	
-    	
-    	// create control to draw point
-    	this.drawControl();
     	    	
-    	// get map
-        if (GeoExt.MapPanel.guess().map) {
-            map = GeoExt.MapPanel.guess().map;
-        }
-        
-        // create layer
-        /*if(map){
-        	if (map.getLayersByName("traveler_Layer").length == 1) {
-                layerAddon = GeoExt.MapPanel.guess().map.getLayersByName("phob_layer_sbg")[0];
-            } else {
-            	var layerOptions = OpenLayers.Util.applyDefaults(
-                    this.layerOptions, {
-                        displayInLayerSwitcher: false,
-                        projection: map.getProjectionObject(),
-                    }
-                );                
-                layerAddon = new OpenLayers.Layer.Vector("traveler_Layer", layerOptions);                                
-                map.addLayer(layerAddon);
-            }            
-        } */                        	              
+    	// create control to draw point
+    	this.drawControl();    	    	         	             
     	    	
 		// create buttons to select type of transport
     	var modeBtn = new Ext.form.CompositeField({
@@ -484,6 +453,13 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	    			name:"typeRadio",
 	    			cls:"uncheckStyle",
 	    			boxLabel:"Le plus court"
+	    		},{
+	    			xtype:"spacer",
+	    			width: "20"
+	    		},{
+	    			xtype:"button",
+	    			text:"Plus d'options",
+	    			cls:"actionBtn"
 	    		}]
         	}],
         	listeners:{
@@ -496,7 +472,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     	});
     	
     	    	
-        // create main window containing free text combo -----------------------------------
+        // create main window containing free text combo
         this.win = new Ext.Window({
             title: OpenLayers.i18n("traveler.window_title"),
             constrainHeader:true,
@@ -507,7 +483,15 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             closeAction: "hide",
             resizable: true,
             collapsible:true,
-            items:[this.panel]
+            items:[this.panel],
+            listeners:{
+            	"hide": function(){
+            		// remove all features
+            		if(layerAddon){            			
+            			layerAddon.removeAllFeatures();
+            		}
+            	}
+            }
         });
         
 
