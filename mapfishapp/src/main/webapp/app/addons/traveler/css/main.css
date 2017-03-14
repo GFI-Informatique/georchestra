@@ -35,7 +35,7 @@
 }
 
 .car-pressed {
-	background-image: url(../img/car-hover-bis.png);	
+	background-image: url(../img/car-selected.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
