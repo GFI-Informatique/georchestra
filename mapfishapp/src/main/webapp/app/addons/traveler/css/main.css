@@ -60,12 +60,26 @@
 	background-color: rgba(255,255,255,0) !important;
 }
 
+
 .carStyle .x-btn-pressed{
 	background-color: white !important;
 }
 
 
+.refresh{
+	background-image: url(../img/16px/reset-blue.png);
+	height: 16px !important;
+	width: 16px !important;		
+}
+
+.calcul{
+	background-image: url(../img/16px/flag-blue.png);
+	height: 16px !important;
+	width: 16px !important;		
+}
+
 .fieldBtn .x-btn-noicon,.fieldBtn .x-btn-small,.fieldBtn .x-btn-text {
+	background-image: url(../img/16px/flag-blue.png);	
 	height:14px !important;
 }
 
@@ -99,7 +113,34 @@
 	margin-left:-10px !important;	
 }
 
-.typeBox{
-	margin-top: 10px;
-	margin-left: 5px;
+.fBan {
+	font: normal 10px 'latoregular',tahoma, arial, helvetica, sans-serif;
+}
+
+.fsOptions .x-fieldset-header-text {
+	font-size:12px;
+}
+
+.fsOptions {
+	margin-right:auto;
+	margin-left:20%;;
+}
+
+.fsOptions .x-tool {
+	background-image: url(../img/tools-sprites-trans.gif);
+}
+
+.fsOptions .x-tool-toggle-over {
+	background-image: url(../img/tool-sprites.png);
+} 
+
+.cpMode {
+	width:76px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.fsStep{
+	margin-right:auto;
+	margin-left:20%;
 }

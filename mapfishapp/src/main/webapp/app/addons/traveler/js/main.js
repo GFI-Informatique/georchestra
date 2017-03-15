@@ -169,8 +169,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 		 
     	// create element to contain waypoint's fields
 		var fSet =  new Ext.form.FieldSet({
-			width:250,
-			border:false,
+			autoWidht:true,
+			cls:"fsStep"
 		});
 		
 		// create ID from fSet
@@ -191,12 +191,13 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     	// create field and buttons
     	var banField = new Ext.form.CompositeField({
     			hideLabel: true,
-    			anchor:"90%",
+    			anchor:"100%",
     			items:[{
             		xtype:"combo",
             		id: inputId,
             		anchor:200,
             		emptyText: "Adresse...",
+            		fieldClass:"fBan",
             		hideLabel:true,
             		hideTrigger: true,
             		store:banStore,
@@ -259,11 +260,9 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             		handler: function(button){
             			if(fSet){                				
             				fSet.destroy();
-            				if(window){
-            					window.syncShadow();
-            				}
+            				travelerAddon.resizeShadow();
             				// remove associated point
-            				removePoint(layerAddon, gpsId, featureArray);
+            				removePoint(layer, gpsId, featureArray);
             				featureArray[gpsId] = "";
             			}               			                			
             		},
@@ -284,6 +283,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     	// create combo to select type of data
     	var comboRef = new Ext.form.ComboBox({
     		emptyText:"Couches...",
+    		id:"ref_" + fSet.id,
     		anchor:"75%",
     		hideLabel:true,
     		hidden:true
@@ -292,6 +292,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     	// create text field
     	var combAtt = new Ext.form.TextField({
     		emptyText:"Objets...",
+    		id:"ob_"+fSet.id,
     		anchor:"75%",
     		hideLabel:true,
     		hidden:true
@@ -328,8 +329,24 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 		return fSet;
 	},
 	
+	
+	/**
+     * Method: resizeShadow
+     *
+     * Parameters:
+     * panel - {Ext.form.Panel} panel to contain field and search options
+     * window - {Ext.form.Window} main window use to calculate route
+     * method - {function} addon method to add new fieldSet
+     */
+	
+	resizeShadow : function(){
+		if(this.win){
+			this.win.syncShadow()
+		}
+	},
+	
     /**
-     * Method: init
+     * Method: insertFset
      *
      * Parameters:
      * panel - {Ext.form.Panel} panel to contain field and search options
@@ -338,22 +355,21 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
 	insertFset : function (panel, window){
 		
-		var addonTraveler = this;
+		var addon = this;
 		
 		if(panel){
-			var idx = panel.items && panel.items.length > 3 ? panel.items.length - 2 : false;
+			var idx = panel.items && panel.items.length > 3 ? panel.items.length - 3 : false;
 			if(idx){    						  
-			// add cross button to delete step
-			panel.insert(idx,addonTraveler.addStep(false,false));
-			// force refresh panel
-			panel.doLayout();
-			if(window){
-				window.syncShadow();
-				window.getId();
-			}			
+				// add cross button to delete step
+				panel.insert(idx,addon.addStep(true,false));
+				// force refresh panel
+				panel.doLayout();
+				this.resizeShadow();
 			}
 		}    	   	    		
 	},
+	
+
 
     /**
      * Method: init
@@ -370,12 +386,13 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     	var travelerAddon = this;
     	    	
     	// create control to draw point
-    	this.drawControl();    	    	         	             
+    	this.drawControl();
+    	
     	    	
 		// create buttons to select type of transport
     	var modeBtn = new Ext.form.CompositeField({
     		 // first window's panel
-    		anchor:"100%",
+    		cls:"cpMode",
         	items:[{
         		xtype:"button",
         		height:35,
@@ -428,44 +445,78 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         				}
         			}
         		}
-        	},{
-        		xtype: "spacer",
-        		width:"30"
         	}]
     	});
     	
     	
     	this.panel = new Ext.Panel({
         	autoScroll:true,
-        	anchor:"100%",
         	id:"wayPointPanel",
         	items:[modeBtn,{
-        		xtype: "compositefield",
-        		cls: "typeBox",
+        		xtype:"fieldset",
+        		collapsible:true,
+        		collapsed:true,
+        		title:"Options",
+        		cls:"fsOptions",
         		items:[{
-	    			xtype:"radio",
-	    			name:"typeRadio",
-	    			checked:true,
-	    			baseCls:"checkStyle",
-	    			boxLabel: "Le plus rapide"
-	    		},{
-	    			xtype:"radio",
-	    			name:"typeRadio",
-	    			cls:"uncheckStyle",
-	    			boxLabel:"Le plus court"
-	    		},{
-	    			xtype:"spacer",
-	    			width: "20"
-	    		},{
-	    			xtype:"button",
-	    			text:"Plus d'options",
-	    			cls:"actionBtn"
-	    		}]
+            		xtype: "compositefield",
+            		hideLabel:true,
+            		items:[{
+    	    			xtype:"radio",
+    	    			name:"typeRadio",
+    	    			checked:true,
+    	    			hideLabel:true,
+    	    			boxLabel: "Le plus rapide"
+    	    		},{
+    	    			xtype:"spacer",
+    	    			width:"5"
+    	    		},{
+    	    			xtype:"radio",
+    	    			hideLabel:true,
+    	    			name:"typeRadio",
+    	    			boxLabel:"Le plus court"
+    	    		},{
+    	    			xtype:"spacer",
+    	    			height:"25"
+    	    		}]            	
+        		},{
+        			xtype:"compositefield",
+        			hideLabel:true,
+        			items:[{
+        				xtype:"checkbox",
+        				boxLabel:"Péages",
+        				labelWidth:20,
+        				hideLabel:true
+        			},{
+        				xtype:"checkbox",
+        				boxLabel:"Ponts",
+        				hideLabel:true
+        			},{
+        				xtype:"checkbox",
+        				boxLabel:"Tunnels",
+        				hideLabel:true
+        			}],
+        		}],
+        		listeners:{
+        			"collapse": function(){
+        				if(travelerAddon.win){
+        					travelerAddon.win.syncShadow();
+    					}
+    				},
+        			"expand": function(){
+        				if(travelerAddon.win){
+        					travelerAddon.win.syncShadow();
+    					}
+    				}, scope:this
+        		}
         	}],
         	listeners:{
         		"added": function(panel){
     				panel.insert(1,travelerAddon.addStep(true, true));
         			panel.insert(2,travelerAddon.addStep(false, true));        			
+        		},
+        		"change": function(panel){
+        			console.log(panel);
         		}
         	}
         
@@ -476,14 +527,27 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         this.win = new Ext.Window({
             title: OpenLayers.i18n("traveler.window_title"),
             constrainHeader:true,
-            height:300,            
-            width:300,
+            autoHeight:true,            
+            width:290,
             autoScroll:true,
             closable: true,
             closeAction: "hide",
-            resizable: true,
+            resizable: false,
             collapsible:true,
             items:[this.panel],
+            buttonAlign: 'center',
+            fbar: [{
+            	iconCls:"refresh",
+            	tooltip: "Recommencer",
+            	cls:"actionBtn"
+            },{
+            	xtype:"spacer",
+            	width:"10"
+            },{
+            	iconCls:"calcul",
+            	tooltip:"Calculer l'itinéraire",
+            	cls:"actionBtn"
+            }],
             listeners:{
             	"hide": function(){
             		// remove all features
