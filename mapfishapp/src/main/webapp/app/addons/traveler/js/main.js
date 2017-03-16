@@ -412,7 +412,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         var addon = this;
 
         if (panel) {
-            var idx = panel.items && panel.items.length > 3 ? panel.items.length - 3 : false;
+            var idx = panel.items && panel.items.length > 2 ? panel.items.length - 2 : false;
             if (idx) {
                 // add cross button to delete step
                 panel.insert(idx, addon.addStep(true, false));
