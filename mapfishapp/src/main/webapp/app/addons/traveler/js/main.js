@@ -505,6 +505,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 }
             }]
         });
+        
+        // container to display precision about route        
+        var detailPan = new Ext.Panel({
+        	
+        });
 
 
         this.panel = new Ext.Panel({
@@ -606,6 +611,22 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 iconCls: "calcul",
                 tooltip: "Calculer l'itinéraire",
                 cls: "actionBtn"
+            },{
+                xtype:"spacer",
+                width: "10"
+            },{
+                iconCls:"detail",
+                tooltip:"Afficher le détail de l'itinéraire",
+                cls:"actionBtn",
+                listeners:{
+                	"click": function(){
+                		if(detailPan.isVisible()){
+                			detailPan.hide();
+                		}else{
+                			// insert container
+                		}
+                	}
+                }
             }],
             listeners: {
                 "hide": function() {

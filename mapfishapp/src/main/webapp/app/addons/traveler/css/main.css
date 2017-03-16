@@ -67,21 +67,30 @@
 
 
 .refresh{
-	background-image: url(../img/16px/reset-blue.png);
-	height: 16px !important;
-	width: 16px !important;		
+	background-image: url(../img/refresh-blue.png);
+	height: 24px !important;
+	width: 24px !important;		
 }
 
 .calcul{
-	background-image: url(../img/16px/flag-blue.png);
-	height: 16px !important;
-	width: 16px !important;		
+	background-image: url(../img/flag-blue.png);
+	height: 24px !important;
+	width: 24px !important;		
+}
+
+.detail{
+    background-image: url(../img/directions.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
 }
 
 .fieldBtn .x-btn-noicon,.fieldBtn .x-btn-small,.fieldBtn .x-btn-text {
 	background-image: url(../img/16px/flag-blue.png);	
 	height:14px !important;
 }
+
+
 
 .gpsIcon {
 	background-image: url(../img/16px/gps-blue.png);
