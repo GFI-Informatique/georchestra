@@ -6,9 +6,10 @@
         "css/main.css"
     ],
     "default_options": {
-    	"limitResponse":5,
-    	"geocodeServiceUrl":"https://api-adresse.data.gouv.fr/search/?",
-    	"maxScaleLevel":14
+    	"EPSG_CODE:"",    	
+    	"BAN_URL":"https://api-adresse.data.gouv.fr/search/?",
+    	"LAYER_WORKSPACE":"geor_loc",
+    	"NB_RESULT":"5"
     },
     "i18n": {
         "en": {
