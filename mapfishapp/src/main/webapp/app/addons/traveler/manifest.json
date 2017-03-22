@@ -1,15 +1,19 @@
 {
     "js": [
-        "js/main.js"
+        "js/main.js",   
+    	"js/referentials.js"
+    
     ],
     "css": [
         "css/main.css"
     ],
-    "default_options": {
-    	"EPSG_CODE:"",    	
+    "default_options": {    	
     	"BAN_URL":"https://api-adresse.data.gouv.fr/search/?",
     	"LAYER_WORKSPACE":"geor_loc",
-    	"NB_RESULT":"5"
+    	"NB_RESULT":5,
+    	"IGN_URL":"http://wxs.ign.fr/r4g8nxstfipd0gram0iqgbs4/itineraire/rest/route.json",
+    	"DEACCENTUATE_QUERYSTRING": "true",
+    	"GEOSERVER_WFS_URL":"/geoserver/wfs"
     },
     "i18n": {
         "en": {

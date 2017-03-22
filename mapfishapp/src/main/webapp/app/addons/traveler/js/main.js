@@ -100,6 +100,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         return control;
     },
 
+    /**
+     * Method: removeFeature
+     * remove layer feature from table key
+     *
+     */
     removeFeature: function(id) {
         var arr = this.featureArray;
         var layer = this.layer();
@@ -110,36 +115,42 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         }
     },
 
+    
+    /**
+     * Method: onBanSelect
+     * get BAN result to feature
+     *
+     */
     onBanSelect: function(combo, record) {
         var geom, toCoordX, toCoordY, from, to, geom, fromCoordX, fromCoordY, point, feature;
-        
+
         if (this.layer()) {
             var vecId = this.featureArray[combo.id] ? this.featureArray[combo.id] : false;
 
             if (vecId && vecId != "" && combo.id) {
                 this.removeFeature(combo.id);
             }
-            
+
 
             from = new OpenLayers.Projection("EPSG:4326"), // default GeoJSON SRS return by the service 
-            to = this.map.getProjectionObject();
-            
+                to = this.map.getProjectionObject();
+
             //get coordinates from GeoJson
             fromCoordX = record.json.geometry.coordinates[0];
             fromCoordY = record.json.geometry.coordinates[1];
-            
+
             // get json geometry transform to map projection
             geom = new OpenLayers.Geometry.Point(fromCoordX, fromCoordY).transform(from, to);
 
             // create point from from transform geometry
-            point = new OpenLayers.Geometry.Point(geom.x,geom.y);
+            point = new OpenLayers.Geometry.Point(geom.x, geom.y);
             feature = new OpenLayers.Feature.Vector(point);
-            
+
             // update table
             this.featureArray[combo.id] = feature.id;
-            
+
             // add point feature to layer and zoom on    
-            this.layer().addFeatures(feature);            
+            this.layer().addFeatures(feature);
         }
     },
 
@@ -153,6 +164,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
 
     addStep: function(isStart, delBtn) {
+
+
+        console.log(comboRef);
+
         var addStr = "add_";
         var rmStr = "rm_";
         var gpsStr = "gps_";
@@ -171,6 +186,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         }
 
         var map = this.map;
+
+        var options = this.options;
+
+
 
         var banStore = new Ext.data.JsonStore({
             proxy: new Ext.data.HttpProxy({
@@ -334,28 +353,16 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }]
         });
 
-        // create combo to select type of data
-        var comboRef = new Ext.form.ComboBox({
-            emptyText: "Couches...",
-            id: "ref_" + fSet.id,
-            anchor: "75%",
-            hideLabel: true,
-            hidden: true
-        });
-
-        // create text field
-        var combAtt = new Ext.form.TextField({
-            emptyText: "Objets...",
-            id: "ob_" + fSet.id,
-            anchor: "75%",
-            hideLabel: true,
-            hidden: true
-        });
+        var comboRef = GEOR.Addons.traveler.referentials(map, options, fSet, featureArray, map, inputId);
 
         // add all items to field set
         fSet.add(banField);
-        fSet.add(comboRef);
-        fSet.add(combAtt);
+
+        if (comboRef) {
+            fSet.add(comboRef);
+            //fSet.add(comboAtt);
+        }
+
 
         //create checkitem
         var checkItem = new Ext.form.Checkbox({
@@ -366,11 +373,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     if (this.checked) {
                         banField.hide();
                         comboRef.show();
-                        combAtt.show();
+                        //comboAtt.show();
                     } else {
                         banField.show();
                         comboRef.hide();
-                        combAtt.hide();
+                        //comboAtt.hide();
                     }
                 }
             }
@@ -477,9 +484,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 }
             }, {
                 xtype: "button",
-                iconCls: "carBtn",
+                iconCls: "car-pressed",
                 id: "carBtn",
                 enableToggle: true,
+                pressed: true,
                 height: 35,
                 toggleGroup: "modeBtn",
                 width: 35,
@@ -505,10 +513,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 }
             }]
         });
-        
+
         // container to display precision about route        
         var detailPan = new Ext.Panel({
-        	
+
         });
 
 
@@ -526,17 +534,19 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     hideLabel: true,
                     items: [{
                         xtype: "radio",
-                        name: "typeRadio",
                         checked: true,
                         hideLabel: true,
-                        boxLabel: "Le plus rapide"
+                        boxLabel: "Le plus rapide",
+                        value: "TIME",
+                        name: "method"
                     }, {
                         xtype: "spacer",
                         width: "5"
                     }, {
                         xtype: "radio",
                         hideLabel: true,
-                        name: "typeRadio",
+                        name: "method",
+                        value: "DISTANCE",
                         boxLabel: "Le plus court"
                     }, {
                         xtype: "spacer",
@@ -549,15 +559,18 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         xtype: "checkbox",
                         boxLabel: "Péages",
                         labelWidth: 20,
-                        hideLabel: true
+                        hideLabel: true,
+                        value: "Toll"
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Ponts",
-                        hideLabel: true
+                        hideLabel: true,
+                        value: "Bridge"
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Tunnels",
-                        hideLabel: true
+                        hideLabel: true,
+                        value: "Tunnel"
                     }],
                 }],
                 listeners: {
@@ -591,6 +604,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         this.win = new Ext.Window({
             title: OpenLayers.i18n("traveler.window_title"),
             constrainHeader: true,
+            id: "winRoute",
             autoHeight: true,
             width: 290,
             autoScroll: true,
@@ -611,21 +625,22 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 iconCls: "calcul",
                 tooltip: "Calculer l'itinéraire",
                 cls: "actionBtn"
-            },{
-                xtype:"spacer",
+            }, {
+                xtype: "spacer",
                 width: "10"
-            },{
-                iconCls:"detail",
-                tooltip:"Afficher le détail de l'itinéraire",
-                cls:"actionBtn",
-                listeners:{
-                	"click": function(){
-                		if(detailPan.isVisible()){
-                			detailPan.hide();
-                		}else{
-                			// insert container
-                		}
-                	}
+            }, {
+                iconCls: "detail",
+                disabled: true,
+                tooltip: "Afficher le détail de l'itinéraire",
+                cls: "actionBtn",
+                listeners: {
+                    "click": function() {
+                        if (detailPan.isVisible()) {
+                            detailPan.hide();
+                        } else {
+                            // insert container
+                        }
+                    }
                 }
             }],
             listeners: {
