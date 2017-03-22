@@ -112,6 +112,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         if (arr[id] && arr[id] != "") {
             var point = layer.getFeatureById(arr[id]);
             layer.removeFeatures(point);
+            arr[id] = "";
         }
     },
 
@@ -163,10 +164,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      * delBtn  - {boolean} true or false to display cross icon
      */
 
-    addStep: function(isStart, delBtn) {
+    addStep: function(isStart, delBtn, idFset) {
 
-
-        console.log(comboRef);
 
         var addStr = "add_";
         var rmStr = "rm_";
@@ -237,7 +236,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         // create element to contain waypoint's fields
         var fSet = new Ext.form.FieldSet({
             autoWidht: true,
-            cls: "fsStep"
+            cls: "fsStep",
+            id:idFset
         });
 
         // create ID from fSet
@@ -289,13 +289,12 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         if (!pointControl.active) {
                             // active control
                             pointControl.activate();
-                            //lastFsetUse = button.id;
+                            
+                            // use to change value display in field
                             travelerAddon.lastFieldUse = inputId;
-                            removePoint(layer, inputId, featureArray);
+                            
+                            travelerAddon.removeFeature(inputId); 
 
-
-                            // create or reset key value in association table
-                            featureArray[inputId] = "";
                         } else {
                             pointControl.deactivate();
                         }
@@ -334,8 +333,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         fSet.destroy();
                         travelerAddon.resizeShadow();
                         // remove associated point
-                        removePoint(layer, gpsId, featureArray);
-                        featureArray[gpsId] = "";
+                        //removePoint(layer, gpsId, featureArray);
+                        travelerAddon.removeFeature(inputId);                        
                     }
                 },
                 listeners: {
@@ -448,6 +447,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 
         // create control to draw point
         this.drawControl();
+        
+        var options = this.options;
 
 
         // create buttons to select type of transport
@@ -532,11 +533,13 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 items: [{
                     xtype: "compositefield",
                     hideLabel: true,
+                    id:"methodRadio",
                     items: [{
                         xtype: "radio",
                         checked: true,
                         hideLabel: true,
                         boxLabel: "Le plus rapide",
+                        id:"timeRadio",
                         value: "TIME",
                         name: "method"
                     }, {
@@ -545,6 +548,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     }, {
                         xtype: "radio",
                         hideLabel: true,
+                        id:"distanceRadio",
                         name: "method",
                         value: "DISTANCE",
                         boxLabel: "Le plus court"
@@ -554,21 +558,25 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     }]
                 }, {
                     xtype: "compositefield",
+                    id:"excludeCheck",
                     hideLabel: true,
                     items: [{
                         xtype: "checkbox",
                         boxLabel: "Péages",
+                        id:"tollRadio",
                         labelWidth: 20,
                         hideLabel: true,
                         value: "Toll"
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Ponts",
+                        id:"bridgeRadio",
                         hideLabel: true,
                         value: "Bridge"
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Tunnels",
+                        id:"tunnelRadio",
                         hideLabel: true,
                         value: "Tunnel"
                     }],
@@ -589,8 +597,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }],
             listeners: {
                 "added": function(panel) {
-                    panel.insert(1, travelerAddon.addStep(true, true));
-                    panel.insert(2, travelerAddon.addStep(false, true));
+                    panel.insert(1, travelerAddon.addStep(true, true,"startPoint"));
+                    panel.insert(2, travelerAddon.addStep(false, true,"endPoint"));
                 },
                 "change": function(panel) {
                     console.log(panel);
@@ -604,7 +612,6 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         this.win = new Ext.Window({
             title: OpenLayers.i18n("traveler.window_title"),
             constrainHeader: true,
-            id: "winRoute",
             autoHeight: true,
             width: 290,
             autoScroll: true,
@@ -624,7 +631,86 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }, {
                 iconCls: "calcul",
                 tooltip: "Calculer l'itinéraire",
-                cls: "actionBtn"
+                cls: "actionBtn",
+                handler: function(){
+                	var wPCoord = [];
+                	var method = [];
+                	var srs;
+                	var exclusions = [];
+                	var graphName;
+                	var settings = new Object();
+                	var url = options.IGN_KEY;
+                	
+                	// parse key value table
+                	for(var key in featureArray){
+                		if(featureArray.hasOwnProperty(key) && layerAddon.getFeatureById(featureArray[key])){
+                			var a = featureArray[key];
+                			var geom = layerAddon.getFeatureById(featureArray[key]).geometry;
+                			
+                			var c = [geom.x,geom.y];
+                			
+                			
+                			if(key.indexOf("start")>-1){
+                				// get origin param
+                				settings.origin = geom.x+","+geom.y;
+                			} else if (key.indexOf("end")>-1){
+                				// get destination param
+                				settings.destination = geom.x+","+geom.y;
+                			} else {
+                				// stock others waypoints
+                				wPCoord.push(geom.x+","+geom.y);
+                			}                			                			                		
+                		}               		                		                	
+                	};
+                	
+                	// waypoints param
+                	settings.waypoints = wPCoord;
+                	
+                	// get graphName param
+                	if(Ext.getCmp("carBtn").pressed){
+                		settings.graphName = "Voiture";
+                	} else {
+                		settings.graphName = "Pieton";
+                	}
+
+                	// get exclusions params
+                	function getExclusion(arr,dest){
+                		arr.forEach(function(el, dest){
+                			if( Ext.getCmp(el.id) && Ext.getCmp(el.id).checked ){
+                				dest.push(Ext.getCmp(el.id).value); 
+                        	};
+                		});
+                    	
+                	}              	                	
+
+                	var checkItems = Ext.getCmp("excludeCheck") ? Ext.getCmp("excludeCheck").items.items : false;                	                	
+                	if(checkItems && checkItems.length > 0){
+                		getExclusion(checkItems, exclusions);
+                	}                	     
+                	
+                	// get method param
+                	if(Ext.getCmp("timeRadio").checked){
+                		settings.method = "TIME";
+                	} else {
+                		settings.method = "DISTANCE";
+                	}
+                	
+                	
+                	
+                	// fire request
+            		var request = new OpenLayers.Request.GET({
+            			url:url,
+            			params: settings,
+            			async:true,
+            			callback: function(request){
+            				if(request.responseText){
+            					console.log(request.responseText);
+            				}
+            			}
+            		});
+                	                	
+                	
+                }
             }, {
                 xtype: "spacer",
                 width: "10"
