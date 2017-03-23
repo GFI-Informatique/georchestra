@@ -10,7 +10,6 @@ GEOR.Addons.traveler.getRoad = function(addon) {
     var settings = new Object();
     var url = addon.options.IGN_URL;
 
-
     settings.origin = "";
     settings.destination = "";
 
@@ -72,7 +71,7 @@ GEOR.Addons.traveler.getRoad = function(addon) {
 
 
     // parse geom from service to display result and zoom on bound
-    function parseWKT(geom, layer, map) {
+    function parseWKT(geom, layer, map, json) {
         var road;
 
         // to display only one result
@@ -110,6 +109,45 @@ GEOR.Addons.traveler.getRoad = function(addon) {
 
             // zoom to result extent
             addon.map.zoomToExtent(bounds);
+
+            // here, populate result panel with global informations
+
+
+            if (addon.resultPanel && addon.panel) {
+                var cut = json.bounds.split(";");
+                var startP = cut[0];
+                var endP = cut[1];
+
+                var data = {
+                    origin: startP,
+                    destination: endP,
+                    distance: json.distance,
+                    duration: json.duration
+                };
+
+                var tpl = new Ext.Template(
+                    '</br><p> <strong>Point de départ</strong> &nbsp; : &nbsp;&nbsp;&nbsp; {origin}.</p></br>',
+                    '<p><strong>Point d\'arrivée</strong> &nbsp; : &nbsp;&nbsp;&nbsp; {destination}.</p></br>',
+                    '<p><strong>Durée </strong>&nbsp; :     &nbsp;&nbsp;&nbsp;  {duration}.</p></br>',
+                    '<p><strong>Distance</strong> &nbsp; :  &nbsp;&nbsp;&nbsp;  {distance}.</p>'
+                );
+
+                tpl.overwrite(addon.resultPanel.body, data);
+
+                addon.panel.hide();
+                addon.resultPanel.show();
+
+                if (addon.win) {
+                    addon.win.syncShadow();
+                }
+
+                if (Ext.getCmp("trav_refresh")) {
+                    Ext.getCmp("trav_refresh").enable();
+                }
+            }
+
+
+
         } else {
             alert('Bad WKT');
         }
@@ -125,10 +163,11 @@ GEOR.Addons.traveler.getRoad = function(addon) {
                 if (request.responseText) {
                     var decode = JSON.parse(request.responseText);
                     if (decode && decode.geometryWkt) {
+                        // get geom from json 
                         var geomWKT = decode.geometryWkt;
 
                         // create route from WKT 
-                        parseWKT(geomWKT, addon.resultLayer(), addon.layer().map);
+                        parseWKT(geomWKT, addon.resultLayer(), addon.layer().map, decode);
                     }
                 }
             }

@@ -569,14 +569,9 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }]
         });
 
-        // container to display precision about route        
-        var detailPan = new Ext.Panel({
-
-        });
-
-
         this.panel = new Ext.Panel({
             autoScroll: true,
+            hidden: false,
             id: "wayPointPanel",
             items: [modeBtn, {
                 xtype: "fieldset",
@@ -658,6 +653,14 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 
         });
 
+        // this panel will be populate by result informations 
+        this.resultPanel = new Ext.Panel({
+            id: "result_pan",
+            hidden: true,
+            html: '<p><i>Write result here</i></p>',
+            autoScroll: true
+        });
+
 
         // create main window containing free text combo
         this.win = new Ext.Window({
@@ -670,7 +673,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             closeAction: "hide",
             resizable: false,
             collapsible: true,
-            items: [this.panel],
+            items: [this.panel, this.resultPanel],
             buttonAlign: 'center',
             fbar: [{
                 iconCls: "refresh",
@@ -686,23 +689,38 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 iconCls: "detail",
                 disabled: true,
                 tooltip: "Afficher le détail de l'itinéraire",
+                id: "trav_refresh",
                 cls: "actionBtn",
                 listeners: {
                     "click": function() {
-                        if (detailPan.isVisible()) {
-                            detailPan.hide();
+                        if (travelerAddon.panel.isVisible()) {
+                            travelerAddon.panel.hide();
+                            travelerAddon.resultPanel.show();
                         } else {
-                            // insert container
+                            travelerAddon.resultPanel.hide();
+                            travelerAddon.panel.show();
                         }
+
+                        travelerAddon.win.syncShadow();
                     }
                 }
             }],
             listeners: {
                 "hide": function() {
                     // remove all features
-                    if (layerAddon) {
-                        layerAddon.removeAllFeatures();
+
+                    if (!travelerAddon.panel.isVisible()) {
+                        travelerAddon.panel.show();
+                        travelerAddon.resultPanel.hide();
                     }
+
+                    if (travelerAddon.layer()) {
+                        travelerAddon.layer().removeAllFeatures();
+                    }
+                    if (travelerAddon.resultLayer()) {
+                        travelerAddon.resultLayer().destroy();
+                    }
+
                 }
             }
         });
@@ -742,6 +760,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
     destroy: function() {
         this.win.destroy();
+        this.layer().destroy();
+        this.resultLayer.destroy();
 
         GEOR.Addons.Base.prototype.destroy.call(this);
     }
