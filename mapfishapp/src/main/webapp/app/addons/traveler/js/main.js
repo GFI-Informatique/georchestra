@@ -25,26 +25,58 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
     layer: function() {
         var layerAddon;
-        var map = this.map;
-        if (map) {
+        var a = this;
+        var style = new OpenLayers.StyleMap(this.options.RESULT_STYLE);
+
+        if (this.map) {
+
             // create and add layer to map if not exist
-            if (map.getLayersByName("traveler_Layer").length == 1) {
+            if (this.map.getLayersByName("traveler_Layer").length == 1) {
                 layerAddon = GeoExt.MapPanel.guess().map.getLayersByName("traveler_Layer")[0];
             } else {
                 var layerOptions = OpenLayers.Util.applyDefaults(
                     this.layerOptions, {
                         displayInLayerSwitcher: false,
-                        projection: map.getProjectionObject(),
+                        projection: a.map.getProjectionObject(),
+                        styleMap: style
                     }
                 );
                 layerAddon = new OpenLayers.Layer.Vector("traveler_Layer", layerOptions);
-                map.addLayer(layerAddon);
+                this.map.addLayer(layerAddon);
             }
         }
         return layerAddon;
     },
 
+    resultLayer: function() {
+        var resultLayer;
 
+        var map = this.map;
+        var from = new OpenLayers.Projection("EPSG:4326");
+        var style = new OpenLayers.StyleMap(this.options.RESULT_STYLE);
+
+        if (map) {
+            // create and add layer to map if not exist
+            if (map.getLayersByName("traveler_result").length == 1) {
+                resultLayer = GeoExt.MapPanel.guess().map.getLayersByName("traveler_result")[0];
+            } else {
+                var layerOptions = OpenLayers.Util.applyDefaults(
+                    this.layerOptions, {
+                        displayInLayerSwitcher: false,
+                        projection: map.getProjectionObject(),
+                        styleMap: style,
+                        preFeatureInsert: function(feature) {
+                            feature.geometry.transform(from, map.getProjectionObject());
+                        }
+                    }
+                );
+                resultLayer = new OpenLayers.Layer.Vector("traveler_result", layerOptions);
+                map.addLayer(resultLayer);
+
+            }
+        }
+        return resultLayer;
+    },
 
     /**
      * Method: addDrawControl
@@ -57,19 +89,16 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         var controlOptions;
         var addon = this;
         var control = this.map.getControlsBy("id", "traveler_point_ctrl").length == 1 ? this.map.getControlsBy("id", "traveler_point_ctrl")[0] : false;
-        var layer = this.layer();
-        var map = this.map;
-        var featureArray = this.featureArray;
 
         // if control not exist create and add it
-        if (map && layer && !control) {
+        if (addon.map && addon.layer() && !control) {
             controlOptions = OpenLayers.Util.applyDefaults(
                 this.pointControlOptions, {
                     id: "traveler_point_ctrl"
                 }
             );
 
-            control = new OpenLayers.Control.DrawFeature(layer, OpenLayers.Handler.Point, controlOptions);
+            control = new OpenLayers.Control.DrawFeature(addon.layer(), OpenLayers.Handler.Point, controlOptions);
 
             control.events.on({
                 "featureadded": function() {
@@ -77,15 +106,18 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 
                     control.deactivate();
 
-                    var indx = layer.features.length - 1;
-                    var feature = layer.features[indx];
+                    var indx = addon.layer().features.length - 1;
+                    var feature = addon.layer().features[indx];
                     var lastPid = feature.id;
                     var x = Math.round(feature.geometry.x * 10000) / 10000;
                     var y = Math.round(feature.geometry.y * 10000) / 10000;
                     if (addon.lastFieldUse) {
-                        featureArray[addon.lastFieldUse] = lastPid;
+                        addon.featureArray[addon.lastFieldUse] = lastPid;
                         Ext.getCmp(addon.lastFieldUse).setValue(x + " / " + y);
                     }
+
+                    // fire routing
+                    GEOR.Addons.traveler.getRoad(addon);
 
                 },
                 scope: this
@@ -93,7 +125,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 
 
             // add control
-            map.addControl(control);
+            addon.map.addControl(control);
         }
 
         // return control
@@ -108,15 +140,27 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     removeFeature: function(id) {
         var arr = this.featureArray;
         var layer = this.layer();
+        var resultLayer = this.resultLayer();
+        var addon = this;
+        var o = Ext.getCmp(id) ? Ext.getCmp(id) : false;
+        if (o) {
+            o.setValue("");
+        }
 
         if (arr[id] && arr[id] != "") {
             var point = layer.getFeatureById(arr[id]);
             layer.removeFeatures(point);
             arr[id] = "";
+            if (layer.features.length > 1) {
+                GEOR.Addons.traveler.getRoad(addon);
+            } else {
+                resultLayer.removeAllFeatures();
+            }
+
         }
     },
 
-    
+
     /**
      * Method: onBanSelect
      * get BAN result to feature
@@ -237,7 +281,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         var fSet = new Ext.form.FieldSet({
             autoWidht: true,
             cls: "fsStep",
-            id:idFset
+            id: idFset
         });
 
         // create ID from fSet
@@ -289,11 +333,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         if (!pointControl.active) {
                             // active control
                             pointControl.activate();
-                            
+
                             // use to change value display in field
                             travelerAddon.lastFieldUse = inputId;
-                            
-                            travelerAddon.removeFeature(inputId); 
+
+                            travelerAddon.removeFeature(inputId);
 
                         } else {
                             pointControl.deactivate();
@@ -334,7 +378,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         travelerAddon.resizeShadow();
                         // remove associated point
                         //removePoint(layer, gpsId, featureArray);
-                        travelerAddon.removeFeature(inputId);                        
+                        travelerAddon.removeFeature(inputId);
                     }
                 },
                 listeners: {
@@ -439,16 +483,26 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
     init: function(record) {
 
+        // get map viewer
+        var map = this.map;
+
+        // create wgs84 projection
+        var from = new OpenLayers.Projection("EPSG:4326")
+
+        // get map projection    	
+        var to = this.map.getProjectionObject();
+
+        // get addon layer use to display points
         var layerAddon = this.layer();
 
+        // get table of key value to find step or points 
         var featureArray = this.featureArray;
 
+        // use to call addon's scope
         var travelerAddon = this;
 
         // create control to draw point
         this.drawControl();
-        
-        var options = this.options;
 
 
         // create buttons to select type of transport
@@ -533,13 +587,13 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 items: [{
                     xtype: "compositefield",
                     hideLabel: true,
-                    id:"methodRadio",
+                    id: "methodRadio",
                     items: [{
                         xtype: "radio",
                         checked: true,
                         hideLabel: true,
                         boxLabel: "Le plus rapide",
-                        id:"timeRadio",
+                        id: "timeRadio",
                         value: "TIME",
                         name: "method"
                     }, {
@@ -548,7 +602,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     }, {
                         xtype: "radio",
                         hideLabel: true,
-                        id:"distanceRadio",
+                        id: "distanceRadio",
                         name: "method",
                         value: "DISTANCE",
                         boxLabel: "Le plus court"
@@ -558,25 +612,25 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     }]
                 }, {
                     xtype: "compositefield",
-                    id:"excludeCheck",
+                    id: "excludeCheck",
                     hideLabel: true,
                     items: [{
                         xtype: "checkbox",
                         boxLabel: "Péages",
-                        id:"tollRadio",
+                        id: "tollRadio",
                         labelWidth: 20,
                         hideLabel: true,
                         value: "Toll"
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Ponts",
-                        id:"bridgeRadio",
+                        id: "bridgeRadio",
                         hideLabel: true,
                         value: "Bridge"
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Tunnels",
-                        id:"tunnelRadio",
+                        id: "tunnelRadio",
                         hideLabel: true,
                         value: "Tunnel"
                     }],
@@ -597,11 +651,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }],
             listeners: {
                 "added": function(panel) {
-                    panel.insert(1, travelerAddon.addStep(true, true,"startPoint"));
-                    panel.insert(2, travelerAddon.addStep(false, true,"endPoint"));
-                },
-                "change": function(panel) {
-                    console.log(panel);
+                    panel.insert(1, travelerAddon.addStep(true, true, "startPoint"));
+                    panel.insert(2, travelerAddon.addStep(false, true, "endPoint"));
                 }
             }
 
@@ -628,89 +679,6 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }, {
                 xtype: "spacer",
                 width: "10"
-            }, {
-                iconCls: "calcul",
-                tooltip: "Calculer l'itinéraire",
-                cls: "actionBtn",
-                handler: function(){
-                	var wPCoord = [];
-                	var method = [];
-                	var srs;
-                	var exclusions = [];
-                	var graphName;
-                	var settings = new Object();
-                	var url = options.IGN_KEY;
-                	
-                	// parse key value table
-                	for(var key in featureArray){
-                		if(featureArray.hasOwnProperty(key) && layerAddon.getFeatureById(featureArray[key])){
-                			var a = featureArray[key];
-                			var geom = layerAddon.getFeatureById(featureArray[key]).geometry;
-                			
-                			var c = [geom.x,geom.y];
-                			
-                			
-                			if(key.indexOf("start")>-1){
-                				// get origin param
-                				settings.origin = geom.x+","+geom.y;
-                			} else if (key.indexOf("end")>-1){
-                				// get destination param
-                				settings.destination = geom.x+","+geom.y;
-                			} else {
-                				// stock others waypoints
-                				wPCoord.push(geom.x+","+geom.y);
-                			}                			                			                		
-                		}               		                		                	
-                	};
-                	
-                	// waypoints param
-                	settings.waypoints = wPCoord;
-                	
-                	// get graphName param
-                	if(Ext.getCmp("carBtn").pressed){
-                		settings.graphName = "Voiture";
-                	} else {
-                		settings.graphName = "Pieton";
-                	}
-
-                	// get exclusions params
-                	function getExclusion(arr,dest){
-                		arr.forEach(function(el, dest){
-                			if( Ext.getCmp(el.id) && Ext.getCmp(el.id).checked ){
-                				dest.push(Ext.getCmp(el.id).value); 
-                        	};
-                		});
-                    	
-                	}              	                	
-
-                	var checkItems = Ext.getCmp("excludeCheck") ? Ext.getCmp("excludeCheck").items.items : false;                	                	
-                	if(checkItems && checkItems.length > 0){
-                		getExclusion(checkItems, exclusions);
-                	}                	     
-                	
-                	// get method param
-                	if(Ext.getCmp("timeRadio").checked){
-                		settings.method = "TIME";
-                	} else {
-                		settings.method = "DISTANCE";
-                	}
-                	
-                	
-                	
-                	// fire request
-            		var request = new OpenLayers.Request.GET({
-            			url:url,
-            			params: settings,
-            			async:true,
-            			callback: function(request){
-            				if(request.responseText){
-            					console.log(request.responseText);
-            				}
-            			}
-            		});
-                	                	
-                	
-                }
             }, {
                 xtype: "spacer",
                 width: "10"
