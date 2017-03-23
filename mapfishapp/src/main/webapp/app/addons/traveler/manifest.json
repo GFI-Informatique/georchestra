@@ -17,9 +17,11 @@
     	"GEOSERVER_WFS_URL":"/geoserver/wfs",
     	"EPSG":"epsg:3857",
     	"RESULT_STYLE": {
-            "strokeColor": "#007ec3",
-            "strokeOpacity": 0.8,
-            "strokeWidth": 4
+            "strokeColor": "#00b3fd",
+            "strokeOpacity": 1,
+            "strokeWidth": 4,
+            "strokeLinecap": "round",
+            "strokeDashstyle": "solid"
         },
         "POINT_STYLE": {
             "pointRadius": 6,

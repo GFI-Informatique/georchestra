@@ -26,7 +26,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     layer: function() {
         var layerAddon;
         var a = this;
-        var style = new OpenLayers.StyleMap(this.options.RESULT_STYLE);
+        var style = new OpenLayers.StyleMap(this.options.POINT_STYLE);
 
         if (this.map) {
 

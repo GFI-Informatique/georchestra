@@ -102,6 +102,13 @@ GEOR.Addons.traveler.getRoad = function(addon) {
 
             }
 
+            // set point layer to front
+            var zIndex = layer.getZIndex() ? layer.getZIndex() : false;
+            if (zIndex) {
+                addon.layer().setZIndex(zIndex + 1);
+            }
+
+            // zoom to result extent
             addon.map.zoomToExtent(bounds);
         } else {
             alert('Bad WKT');
