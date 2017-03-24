@@ -3,7 +3,7 @@ Ext.namespace("GEOR");
 
 
 
-GEOR.Addons.traveler.referentials = function(map, options, fieldSet, featureArray, layer, inputId) {
+GEOR.Addons.traveler.referentials = function(addon, fieldSet, inputId) {
 
 
     /*
@@ -46,8 +46,8 @@ GEOR.Addons.traveler.referentials = function(map, options, fieldSet, featureArra
         if (fieldSet) {
 
             // check if panel already exists
-            if (featureArray[combo.id]) {
-                Ext.getCmp(featureArray[combo.id]).destroy();
+            if (addon.featureArray[combo.id]) {
+                Ext.getCmp(addon.featureArray[combo.id]).destroy();
             }
 
 
@@ -58,7 +58,7 @@ GEOR.Addons.traveler.referentials = function(map, options, fieldSet, featureArra
             }, {
                 success: function() {
 
-                    var cb = GEOR.Addons.traveler.cbAttribute(record, attStore, fieldSet, inputId, featureArray, options, layer, combo);
+                    var cb = GEOR.Addons.traveler.cbAttribute(record, attStore, fieldSet, inputId, combo, addon);
 
 
                     // load  cbStore;
@@ -87,22 +87,25 @@ GEOR.Addons.traveler.referentials = function(map, options, fieldSet, featureArra
      * Returns:
      * {Ext.form.ComboBox} the combobox
      */
-    var createLayerCombo = function(options) {
-        var url = options.GEOSERVER_WFS_URL.replace(
+    var createLayerCombo = function(addon) {
+        var url = addon.options.GEOSERVER_WFS_URL.replace(
             /(\/.*\/)wfs/i,
-            "$1" + options.LAYER_WORKSPACE + "/wfs"
+            "$1" + addon.options.LAYER_WORKSPACE + "/wfs"
         );
+        
         var store = GEOR.ows.WFSCapabilities({
             url: url,
             storeOptions: {
                 url: url,
                 protocolOptions: {
-                    srsName: map.getProjection(),
+                    srsName: addon.map.getProjection(),
                     srsNameInQuery: true, // see http://trac.osgeo.org/openlayers/ticket/2228
                     // required so that we do not use the proxy if on same machine:
                     url: url,
                     // to prevent warning message (too many features):
                     maxFeatures: 10
+                    
+                    // TODO : display message if no data
                 }
             }
         });
@@ -128,14 +131,14 @@ GEOR.Addons.traveler.referentials = function(map, options, fieldSet, featureArra
     /*
      * Public
      */
-    return createLayerCombo(options);
+    return createLayerCombo(addon);
 };
 
 
 
 
 // create cb to search attribute
-GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId, featureArray, options, layer, combo) {
+GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId, combo, addon) {
     var store, disabled = false;
 
 
@@ -143,10 +146,16 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
      * Remove existante feature
      *
      */
-    var rmFeature = function(arr, layer, id) {
+    var rmFeature = function(addon, id) {
+        var arr = addon.featureArray;
+        
         if (arr[id] && arr[id] != "") {
-            var point = layer.getFeatureById(arr[id]);
-            layer.removeFeatures(point);
+            var point = addon.layer().getFeatureById(arr[id]);
+            addon.layer().removeFeatures(point);
+        }
+        
+        if(addon.resultLayer()){
+            addon.resultLayer().destroy();
         }
     }
 
@@ -185,21 +194,56 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
      * Parameters:
      * record - {Ext.data.Record}
      */
-    var onComboSelect = function(record) {
+    var onComboSelect = function(record,addon,cb) {
+        var layer = addon.layer();
+        var arr = addon.featureArray;
+        
+        // get feature attributes from record
         var feature = record.get('feature');
+        
         if (!feature) {
             return;
         }
-        if (feature.geometry) {
-            var geometry = feature.geometry;
+        
+        var dataList = feature.data ? feature.data : false;
+        var cbStr = "";
+        // parse key value table to display 
+        if(dataList){
+            for (var key in dataList) {
+                var a = dataList[key];
+                if (dataList.hasOwnProperty(key) && a && a != "") {
+                    if(cbStr == ""){
+                        cbStr = cbStr + a;
+                    } else {
+                        cbStr = cbStr + " , " + a;
+                    }
+                    
+                }
+            };        
+        }        
+        
+        // get feature geometry
+        if (feature.geometry) {                        
+            var geometry = feature.geometry.getCentroid();
+            
+            
             if (geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
-                rmFeature(featureArray, layer, inputId);
+                rmFeature(addon, inputId);
                 if (layer) {
                     var feature = new OpenLayers.Feature.Vector(geometry);
-                    featureArray[inputId] = feature.id;
+                    arr[inputId] = feature.id;
                     layer.addFeatures(feature);
+                    GEOR.Addons.traveler.getRoad(addon);
                 }
             }
+            
+            // display feature data if exist or coordinates
+            if(cbStr && cbStr != ""){
+                cb.setValue(cbStr);                       
+            } else {
+                cb.setValue(feature.geometry.x + " , " + feature.geometry.y);                       
+            }
+            
         }
     };
 
@@ -212,7 +256,7 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
     var buildFilter = function(queryString, stringAttributes) {
         var l = stringAttributes.length;
         // we might need to replace accentuated chars by their unaccentuated version
-        if (options.DEACCENTUATE_REFERENTIALS_QUERYSTRING === true) {
+        if (addon.options.DEACCENTUATE_REFERENTIALS_QUERYSTRING === true) {
             queryString = GEOR.util.stringDeaccentuate(queryString);
         }
         // and toUpperCase is required, since all the DBF data is UPPERCASED
@@ -297,6 +341,7 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
     // create combo box
     var cb = new Ext.form.ComboBox({
         loadingText: "Loading...",
+        fieldClass: "fBan",
         hidden: false,
         hideLabel: true,
         name: 'nothing',
@@ -315,19 +360,18 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
         store: store,
         listeners: {
             "select": function(combo, record, index) {
-                onComboSelect(record);
+                onComboSelect(record,addon,cb);
             },
             "specialkey": function(combo, event) {
                 if (event.getKey() == event.ENTER) {
-                    onComboSelect(record);
+                    onComboSelect(record,addon,cb);
                 }
             },
             scope: this
         }
     });
 
-    featureArray[combo.id] = cb.id;
-    console.log(featureArray);
+    addon.featureArray[combo.id] = cb.id;
 
     // hack in order to show the result dataview even
     // in case of "too many features" warning message

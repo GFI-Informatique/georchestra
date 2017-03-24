@@ -2,7 +2,7 @@
         "id": "traveler_0",
         "name": "traveler",
         "enabled": true,
-        "preloaded":true,
+        "preloaded":false,
         "title": {
             "en": "Route calculation",
             "es": "Cálculo de ruta",

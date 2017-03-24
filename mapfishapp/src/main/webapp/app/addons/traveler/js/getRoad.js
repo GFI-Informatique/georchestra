@@ -2,9 +2,9 @@ Ext.namespace("GEOR");
 
 GEOR.Addons.traveler.getRoad = function(addon) {
 
+
     var wPCoord = "";
     var method = [];
-    var srs;
     var exclusions = [];
     var graphName;
     var settings = new Object();
@@ -12,8 +12,9 @@ GEOR.Addons.traveler.getRoad = function(addon) {
 
     settings.origin = "";
     settings.destination = "";
-
-    settings.srs = addon.options.EPSG;
+    
+    // default projection use to display data on map
+    settings.srs = addon.map.getProjectionObject();;
 
     // parse key value table
     for (var key in addon.featureArray) {
@@ -48,18 +49,13 @@ GEOR.Addons.traveler.getRoad = function(addon) {
     }
 
     // get exclusions params
-    function getExclusion(arr, dest) {
-        arr.forEach(function(el, dest) {
-            if (Ext.getCmp(el.id) && Ext.getCmp(el.id).checked) {
-                dest.push(Ext.getCmp(el.id).value);
-            };
-        });
-
-    }
-
     var checkItems = Ext.getCmp("excludeCheck") ? Ext.getCmp("excludeCheck").items.items : false;
     if (checkItems && checkItems.length > 0) {
-        getExclusion(checkItems, exclusions);
+        checkItems.forEach(function(el) {
+            if (Ext.getCmp(el.id) && Ext.getCmp(el.id).checked) {
+                exclusions.push(Ext.getCmp(el.id).value);
+            };
+        });
     }
 
     // get method param
@@ -110,51 +106,36 @@ GEOR.Addons.traveler.getRoad = function(addon) {
             // zoom to result extent
             addon.map.zoomToExtent(bounds);
 
-            // here, populate result panel with global informations
-
-
-            if (addon.resultPanel && addon.panel) {
-                var cut = json.bounds.split(";");
-                var startP = cut[0];
-                var endP = cut[1];
-
-                var data = {
-                    origin: startP,
-                    destination: endP,
-                    distance: json.distance,
-                    duration: json.duration
-                };
-
-                var tpl = new Ext.Template(
-                    '</br><p> <strong>Point de départ</strong> &nbsp; : &nbsp;&nbsp;&nbsp; {origin}.</p></br>',
-                    '<p><strong>Point d\'arrivée</strong> &nbsp; : &nbsp;&nbsp;&nbsp; {destination}.</p></br>',
-                    '<p><strong>Durée </strong>&nbsp; :     &nbsp;&nbsp;&nbsp;  {duration}.</p></br>',
-                    '<p><strong>Distance</strong> &nbsp; :  &nbsp;&nbsp;&nbsp;  {distance}.</p>'
-                );
-
-                tpl.overwrite(addon.resultPanel.body, data);
-
-                addon.panel.hide();
-                addon.resultPanel.show();
-
-                if (addon.win) {
-                    addon.win.syncShadow();
-                }
-
-                if (Ext.getCmp("trav_refresh")) {
-                    Ext.getCmp("trav_refresh").enable();
-                }
+            // here, populate result fields with informations
+            
+            var d = json.distance;
+            var ts = json.durationSeconds;
+            var t = json.duration;
+            
+            var tCut = t.split(":");
+            var tStr = tCut[0]+" h "+tCut[1]+" min";
+            
+            if (Ext.getCmp("trav_result")) {
+                Ext.getCmp("trav_result").show(); 
+            }
+            
+            if (Ext.getCmp("trav_dist") && t) {
+                Ext.getCmp("trav_dist").setValue(d); 
             }
 
-
+            if (Ext.getCmp("trav_time") && t) {
+                Ext.getCmp("trav_time").setValue(tStr);
+            }         
 
         } else {
             alert('Bad WKT');
         }
+        
     }
 
-    if (settings.origin != "" && settings.destination != "") {
+    if (settings.origin && settings.origin != "" && settings.destination && settings.destination != "") {
         // fire request
+        GEOR.waiter.show();
         var request = new OpenLayers.Request.GET({
             url: url,
             params: settings,

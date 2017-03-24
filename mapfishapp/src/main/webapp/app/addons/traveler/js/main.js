@@ -1,6 +1,7 @@
 Ext.namespace("GEOR.Addons");
 
 GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
+
     win: null,
     addressField: null,
 
@@ -13,7 +14,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
     map: function() {
         if (GeoExt.MapPanel.guess().map) {
-            return GeoExt.MapPanel.guess().map
+            return GeoExt.MapPanel.guess().map;
         }
     },
 
@@ -396,7 +397,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }]
         });
 
-        var comboRef = GEOR.Addons.traveler.referentials(map, options, fSet, featureArray, map, inputId);
+        var comboRef = GEOR.Addons.traveler.referentials(travelerAddon, fSet, inputId);
+        
+        // if no warehouse is set to find layer, deactive checkBox
+        var cbDisplay = false;
+        
 
         // add all items to field set
         fSet.add(banField);
@@ -405,26 +410,29 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             fSet.add(comboRef);
             //fSet.add(comboAtt);
         }
-
-
+        
+        if(comboRef.getStore() && (!comboRef.getStore().url || comboRef.getStore().url == "")){
+            cbDisplay = true;
+        }
+        
         //create checkitem
         var checkItem = new Ext.form.Checkbox({
             hideLabel: true,
+            hidden:cbDisplay,
             boxLabel: "Référentiels",
             listeners: {
                 "check": function() {
                     if (this.checked) {
                         banField.hide();
                         comboRef.show();
-                        //comboAtt.show();
                     } else {
                         banField.show();
                         comboRef.hide();
-                        //comboAtt.hide();
                     }
                 }
             }
         });
+        
 
         // insert checkbox to select data type
         fSet.insert(0, checkItem);
@@ -462,7 +470,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         var addon = this;
 
         if (panel) {
-            var idx = panel.items && panel.items.length > 2 ? panel.items.length - 2 : false;
+            var idx = panel.items && panel.items.length > 2 ? panel.items.length - 4 : false;
             if (idx) {
                 // add cross button to delete step
                 panel.insert(idx, addon.addStep(true, false));
@@ -482,6 +490,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      * record - {Ext.data.record} a record with the addon parameters
      */
     init: function(record) {
+        
+        if(GEOR.config.ANONYMOUS){
+            return;
+        }
 
         // get map viewer
         var map = this.map;
@@ -532,6 +544,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     "toggle": function() {
                         if (this.pressed) {
                             this.setIconClass("walk-pressed");
+                            GEOR.Addons.traveler.getRoad(travelerAddon);
                         } else {
                             this.setIconClass("walkBtn");
                         }
@@ -561,6 +574,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     "toggle": function() {
                         if (this.pressed) {
                             this.setIconClass("car-pressed");
+                            GEOR.Addons.traveler.getRoad(travelerAddon);
                         } else {
                             this.setIconClass("carBtn");
                         }
@@ -590,7 +604,12 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         boxLabel: "Le plus rapide",
                         id: "timeRadio",
                         value: "TIME",
-                        name: "method"
+                        name: "method",
+                        listeners:{
+                            check: function(c){
+                                GEOR.Addons.traveler.getRoad(travelerAddon);
+                            },scope:this
+                        }                        
                     }, {
                         xtype: "spacer",
                         width: "5"
@@ -600,7 +619,12 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         id: "distanceRadio",
                         name: "method",
                         value: "DISTANCE",
-                        boxLabel: "Le plus court"
+                        boxLabel: "Le plus court",
+                        listeners:{
+                            check: function(c){
+                                GEOR.Addons.traveler.getRoad(travelerAddon);
+                            },scope:this
+                        }                                               
                     }, {
                         xtype: "spacer",
                         height: "25"
@@ -611,26 +635,89 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                     hideLabel: true,
                     items: [{
                         xtype: "checkbox",
+                        tooltip:"Eviter les péages",
                         boxLabel: "Péages",
                         id: "tollRadio",
                         labelWidth: 20,
                         hideLabel: true,
-                        value: "Toll"
+                        value: "Toll",
+                        listeners:{
+                            check: function(c){                            
+                                GEOR.Addons.traveler.getRoad(travelerAddon);
+                            },scope:this
+                        }                        
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Ponts",
+                        tooltip:"Eviter les ponts",
                         id: "bridgeRadio",
                         hideLabel: true,
-                        value: "Bridge"
+                        value: "Bridge",
+                        listeners:{
+                            check: function(c){
+                                GEOR.Addons.traveler.getRoad(travelerAddon);
+
+                            },scope:this
+                        }                        
                     }, {
                         xtype: "checkbox",
                         boxLabel: "Tunnels",
                         id: "tunnelRadio",
+                        tooltip:"Eviter les tunnels",
                         hideLabel: true,
-                        value: "Tunnel"
-                    }],
+                        value: "Tunnel",
+                        listeners:{
+                            check: function(c){
+                                GEOR.Addons.traveler.getRoad(travelerAddon);
+                            },scope:this
+                        }
+                    }]
                 }],
-                listeners: {
+                listeners:{
+                    "collapse": function() {
+                        if (travelerAddon.win) {
+                            travelerAddon.win.syncShadow();
+                        }
+                    },
+                    "expand": function() {
+                        if (travelerAddon.win) {
+                            travelerAddon.win.syncShadow();
+                        }
+                    }
+                }
+            },{
+                xtype:"spacer",
+                height:"10"
+            },{
+                xtype:"fieldset",
+                title:"Détail du parcours",
+                hidden:true,
+                id:"trav_result",
+                collapsible: true,
+                collapsed:true,
+                cls: "fsInfo",
+                items:[{                
+                    xtype:"textfield",
+                    id:"trav_dist",
+                    width:60,
+                    fieldLabel:"Distance ",
+                    readOnly:true,
+                    style: {
+                        borderWidth:"0px"
+                    },
+                    labelStyle: 'font-size:11px;'
+                },{                
+                    xtype:"textfield",
+                    width:60,
+                    id:"trav_time",
+                    fieldLabel:"Temps ",                    
+                    readOnly:true,
+                    style: {
+                        borderWidth:"0px"
+                    },
+                    labelStyle: 'font-size:11px;'
+                }],
+                listeners:{
                     "collapse": function() {
                         if (travelerAddon.win) {
                             travelerAddon.win.syncShadow();
@@ -641,9 +728,14 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                             travelerAddon.win.syncShadow();
                         }
                     },
-                    scope: this
+                    "show": function(f){
+                        if(f.collapsed){
+                            f.expand();
+                        }
+                    }
                 }
-            }],
+            }
+                   ],
             listeners: {
                 "added": function(panel) {
                     panel.insert(1, travelerAddon.addStep(true, true, "startPoint"));
@@ -652,15 +744,6 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             }
 
         });
-
-        // this panel will be populate by result informations 
-        this.resultPanel = new Ext.Panel({
-            id: "result_pan",
-            hidden: true,
-            html: '<p><i>Write result here</i></p>',
-            autoScroll: true
-        });
-
 
         // create main window containing free text combo
         this.win = new Ext.Window({
@@ -673,47 +756,26 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             closeAction: "hide",
             resizable: false,
             collapsible: true,
-            items: [this.panel, this.resultPanel],
+            items: [this.panel],
             buttonAlign: 'center',
             fbar: [{
                 iconCls: "refresh",
                 tooltip: "Recommencer",
-                cls: "actionBtn"
-            }, {
-                xtype: "spacer",
-                width: "10"
-            }, {
-                xtype: "spacer",
-                width: "10"
-            }, {
-                iconCls: "detail",
-                disabled: true,
-                tooltip: "Afficher le détail de l'itinéraire",
                 id: "trav_refresh",
-                cls: "actionBtn",
-                listeners: {
-                    "click": function() {
-                        if (travelerAddon.panel.isVisible()) {
-                            travelerAddon.panel.hide();
-                            travelerAddon.resultPanel.show();
-                        } else {
-                            travelerAddon.resultPanel.hide();
-                            travelerAddon.panel.show();
-                        }
-
-                        travelerAddon.win.syncShadow();
-                    }
-                }
+                cls: "actionBtn"
+            },{
+                xtype:"spacer",
+                width:20
+            },{
+                iconCls: "detail",
+                hidden:true,                
+                tooltip: "Imprimer",
+                id: "trav_print",
+                cls: "actionBtn"
             }],
             listeners: {
                 "hide": function() {
                     // remove all features
-
-                    if (!travelerAddon.panel.isVisible()) {
-                        travelerAddon.panel.show();
-                        travelerAddon.resultPanel.hide();
-                    }
-
                     if (travelerAddon.layer()) {
                         travelerAddon.layer().removeAllFeatures();
                     }

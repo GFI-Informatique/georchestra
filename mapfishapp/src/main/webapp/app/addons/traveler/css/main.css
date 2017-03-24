@@ -95,51 +95,51 @@
 .gpsIcon {
 	background-image: url(../img/16px/gps-blue.png);
 	background-repeat:no-repeat;
-	margin-left:-38px !important;	
+	margin-left:-16px !important;	
 }
 
 .addIcon {
 	background-image: url(../img/16px/add-white.png);
 	background-repeat:no-repeat;
-	margin-left:-10px !important;	
+	margin-left:-5px !important;		
 }
 
 .addHover{
 	background-image: url(../img/16px/add-pressed.png);
 	background-repeat:no-repeat;
-	margin-left:-10px !important;	
+	margin-left:-5px !important;		
 }
 
 .rmIcon {
 	background-image: url(../img/16px/clear-pressed.png);
 	background-repeat:no-repeat;
-	margin-left:-10px !important;		
+	margin-left:-5px !important;		
 }
 
 .rmHover{
 	background-image: url(../img/16px/clear-blue.png);
 	background-repeat:no-repeat;
-	margin-left:-10px !important;	
+	margin-left:-5px !important;		
 }
 
 .fBan {
 	font: normal 10px 'latoregular',tahoma, arial, helvetica, sans-serif;
 }
 
-.fsOptions .x-fieldset-header-text {
+.fsOptions .x-fieldset-header-text, .fsInfo .x-fieldset-header-text {
 	font-size:12px;
 }
 
-.fsOptions {
+.fsOptions, .fsInfo {
 	margin-right:auto;
-	margin-left:20%;;
+	margin-left:20%;
 }
 
-.fsOptions .x-tool {
+.fsOptions .x-tool, .fsInfo .x-tool {
 	background-image: url(../img/tools-sprites-trans.gif);
 }
 
-.fsOptions .x-tool-toggle-over {
+.fsOptions .x-tool-toggle-over, .fsInfo .x-tool-toggle-over {
 	background-image: url(../img/tool-sprites.png);
 } 
 
@@ -153,3 +153,9 @@
 	margin-right:auto;
 	margin-left:20%;
 }
+
+.fsInfo {
+	border-top:1px solid;
+    border-top-color:rgba(0,126,195,0.7);
+}
+

@@ -19,12 +19,12 @@
     	"RESULT_STYLE": {
             "strokeColor": "#00b3fd",
             "strokeOpacity": 1,
-            "strokeWidth": 4,
+            "strokeWidth": 5,
             "strokeLinecap": "round",
             "strokeDashstyle": "solid"
         },
         "POINT_STYLE": {
-            "pointRadius": 6,
+            "pointRadius": 5,
             "fillColor":"white",
             "strokeColor": "black",            
             "strokeWidth": 2            
