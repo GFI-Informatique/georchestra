@@ -356,6 +356,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 xtype: "button",
                 iconCls: "addIcon",
                 id: addId,
+                tooltip:OpenLayers.i18n("traveler.addpoint.tooltip"),
                 cls: "actionBtn",
                 hidden: isStart,
                 handler: function() {
@@ -369,6 +370,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 xtype: "button",
                 iconCls: "rmIcon",
                 id: rmId,
+                tooltip: OpenLayers.i18n("traveler.removepoint.tooltip"),
                 hidden: delBtn,
                 cls: "actionBtn",
                 handler: function(button) {
@@ -450,8 +452,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
 
     resizeShadow: function() {
-        if (this.win) {
-            this.win.syncShadow()
+        if (this.win()) {
+            this.win().syncShadow()
         }
     },
     
