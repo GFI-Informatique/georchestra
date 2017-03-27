@@ -112,6 +112,8 @@ GEOR.Addons.traveler.referentials = function(addon, fieldSet, inputId) {
 
         return new Ext.form.ComboBox({
             hideLabel: true,
+            emptyText:OpenLayers.i18n("traveler.referential.combolayer.emptytext"),
+            tooltip:OpenLayers.i18n("traveler.referential.combolayer.tooltip"),
             hidden: true,
             store: store,
             displayField: 'title',
@@ -306,7 +308,7 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
         } else {
             // this message is destinated to the administrator
             // no need to display a nice dialog.
-            alert(tr("There is no geometry column in the selected referential"));
+            alert(tr("traveler.referential.nogeom"));
         }
         // find the string attribute names:
         var attributes = filterStringType(attStore);
@@ -340,7 +342,7 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
 
     // create combo box
     var cb = new Ext.form.ComboBox({
-        loadingText: "Loading...",
+        loadingText: OpenLayers.i18n("traveler.referential.comboref.loading"),
         fieldClass: "fBan",
         hidden: false,
         hideLabel: true,
@@ -356,7 +358,7 @@ GEOR.Addons.traveler.cbAttribute = function(record, attStore, fieldSet, inputId,
         queryParam: 'query', // do not modify
         tpl: buildTemplate(attributes),
         pageSize: 0,
-        emptyText: disabled ? "Choose a referential" : '',
+        emptyText: OpenLayers.i18n("traveler.referential.comboref.emptytext"),
         store: store,
         listeners: {
             "select": function(combo, record, index) {

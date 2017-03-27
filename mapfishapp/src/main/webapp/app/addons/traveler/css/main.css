@@ -109,11 +109,14 @@
 }
 
 .addIcon {
-	background-image: url(../img/16px/add-white.png);
+	background-image: url(../img/16px/add-blue-simple.png);
 	background-repeat:no-repeat;
 	margin-left:-5px !important;		
 }
-
+.addIcon:hover{
+	background-image: url(../img/16px/add-white-pressed.png);
+	
+}
 .addHover{
 	background-image: url(../img/16px/add-pressed.png);
 	background-repeat:no-repeat;

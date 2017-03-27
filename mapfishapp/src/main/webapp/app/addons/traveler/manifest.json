@@ -37,7 +37,31 @@
         },        
         "fr": {
         	"traveler.window_title":"Calcul d'itinéraire",
-        	"traveler.msg.noright": "Accès interdit"
+        	"traveler.msg.noright": "Accès interdit",
+        	"traveler.referential.checkbox":"Référentiel",
+			"traveler.ban.emptytext":"Adresse...",
+			"traveler.ban.tooltip":"Saisir une adresse, un lieu-dit...",
+			"traveler.options.title":"Options",
+			"traveler.options.fast":"Le plus rapide",
+			"traveler.options.distance":"Le plus court",
+			"traveler.options.checkbox.toll":"Péages",
+			"traveler.options.checkbox.bridge":"Péages",
+			"traveler.options.checkbox.tunels":"Tunnels",
+			"traveler.refresh.tooltip":"Recommencer",
+			"traveler.options.toll.tooltip": "Eviter les péages",
+			"traveler.options.bridge.tooltip": "Eviter les ponts",
+			"traveler.options.tunnels.tooltip": "Eviter les tunnels",
+			"traveler.referential.combolayer.tooltip": "Ouvrir la liste des couches",
+			"traveler.referential.combolayer.emptytext": "Sélectionner une couche",
+			"traveler.referential.comboref.emptytext": "Choisir un référentiel",
+			"traveler.referential.comboref.loading": "Chargement",
+			"traveler.referential.nogeom":"Aucune géométry dans le référentiel sélectionné",
+			"traveler.method.car.tooltip":"Déplacement en voiture",
+			"traveler.method.walk.tooltip":"Déplacement piéton",
+			"traveler.result.distance": "Distance ",
+			"traveler.result.time": "Temps ",
+			"traveler.result.title": "Détail du parcours",
+			"traveler.drawpoint.tooltip": "Dessiner un point à main levée"
         } 
     }
 }

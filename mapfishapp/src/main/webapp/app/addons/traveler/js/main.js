@@ -313,8 +313,9 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 xtype: "combo",
                 id: inputId,
                 anchor: 200,
-                emptyText: "Adresse...",
+                emptyText: OpenLayers.i18n("traveler.ban.emptytext"),
                 fieldClass: "fBan",
+                tooltip: OpenLayers.i18n("traveler.ban.tooltip"),
                 hideLabel: true,
                 hideTrigger: true,
                 store: banStore,
@@ -330,6 +331,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 xtype: "button",
                 iconCls: "gpsIcon",
                 id: gpsId,
+                tooltip: OpenLayers.i18n("traveler.drawpoint.tooltip"),
                 cls: "actionBtn",
                 handler: function(button) {
                     var idBtn = button.id;
@@ -362,18 +364,6 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 		travelerAddon.insertFset(panel, window);
                 	}
                     
-                },
-                listeners: {
-                    "mouseover": function() {
-                        if (!this.pressed) {
-                            this.setIconClass("addHover");
-                        }
-                    },
-                    "mouseout": function() {
-                        if (!this.pressed) {
-                            this.setIconClass("addIcon");
-                        }
-                    }
                 }
             }, {
                 xtype: "button",
@@ -509,7 +499,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 buttonAlign: 'center',
                 fbar: [{
                     iconCls: "refresh",
-                    tooltip: "Recommencer",
+                    tooltip: OpenLayers.i18n("traveler.refresh.tooltip"),
                     id: "trav_refresh",
                     cls: "actionBtn",
                     handler: function(){
@@ -609,6 +599,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                height: 35,
 	                id: "walkBtn",
 	                width: 35,
+	                tooltip: OpenLayers.i18n("traveler.method.walk.tooltip"),
 	                enableToggle: true,
 	                toggleGroup: "modeBtn",
 	                iconCls: "walkBtn",
@@ -637,6 +628,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                xtype: "button",
 	                iconCls: "car-pressed",
 	                id: "carBtn",
+	                tooltip: OpenLayers.i18n("traveler.method.car.tooltip"),
 	                enableToggle: true,
 	                pressed: true,
 	                height: 35,
@@ -676,7 +668,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                xtype: "fieldset",
 	                collapsible: true,
 	                collapsed: true,
-	                title: "Options",
+	                title: OpenLayers.i18n("traveler.options.title"),
 	                cls: "fsOptions",
 	                items: [{
 	                    xtype: "compositefield",
@@ -686,7 +678,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                        xtype: "radio",
 	                        checked: true,
 	                        hideLabel: true,
-	                        boxLabel: "Le plus rapide",
+	                        boxLabel: OpenLayers.i18n("traveler.options.fast"),
 	                        id: "timeRadio",
 	                        value: "TIME",
 	                        name: "method",
@@ -704,7 +696,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                        id: "distanceRadio",
 	                        name: "method",
 	                        value: "DISTANCE",
-	                        boxLabel: "Le plus court",
+	                        boxLabel: OpenLayers.i18n("traveler.options.distance"),
 	                        listeners:{
 	                            check: function(c){
 	                                GEOR.Addons.traveler.getRoad(travelerAddon);
@@ -720,8 +712,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                    hideLabel: true,
 	                    items: [{
 	                        xtype: "checkbox",
-	                        tooltip:"Eviter les péages",
-	                        boxLabel: "Péages",
+	                        tooltip: OpenLayers.i18n("traveler.options.toll.tooltip"),
+	                        boxLabel: OpenLayers.i18n("traveler.options.checkbox.toll"),
 	                        id: "tollRadio",
 	                        labelWidth: 20,
 	                        hideLabel: true,
@@ -733,8 +725,8 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                        }                        
 	                    }, {
 	                        xtype: "checkbox",
-	                        boxLabel: "Ponts",
-	                        tooltip:"Eviter les ponts",
+	                        boxLabel: OpenLayers.i18n("traveler.options.checkbox.bridge"),
+	                        tooltip: OpenLayers.i18n("traveler.options.bridge.tooltip"),
 	                        id: "bridgeRadio",
 	                        hideLabel: true,
 	                        value: "Bridge",
@@ -746,9 +738,9 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                        }                        
 	                    }, {
 	                        xtype: "checkbox",
-	                        boxLabel: "Tunnels",
+	                        boxLabel: OpenLayers.i18n("traveler.options.checkbox.tunels"),
+	                        tooltip:OpenLayers.i18n("traveler.options.tunnels.tooltip"),
 	                        id: "tunnelRadio",
-	                        tooltip:"Eviter les tunnels",
 	                        hideLabel: true,
 	                        value: "Tunnel",
 	                        listeners:{
@@ -775,7 +767,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                height:"10"
 	            },{
 	                xtype:"fieldset",
-	                title:"Détail du parcours",
+	                title:OpenLayers.i18n("traveler.result.title"),
 	                hidden:true,
 	                id:"trav_result",
 	                collapsible: true,
@@ -785,7 +777,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                    xtype:"textfield",
 	                    id:"trav_dist",
 	                    width:60,
-	                    fieldLabel:"Distance ",
+	                    fieldLabel:OpenLayers.i18n("traveler.result.distance"),
 	                    readOnly:true,
 	                    style: {
 	                        borderWidth:"0px"
@@ -795,7 +787,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 	                    xtype:"textfield",
 	                    width:60,
 	                    id:"trav_time",
-	                    fieldLabel:"Temps ",                    
+	                    fieldLabel:OpenLayers.i18n("traveler.result.time"),                    
 	                    readOnly:true,
 	                    style: {
 	                        borderWidth:"0px"
@@ -834,7 +826,6 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             // create a button to be inserted in toolbar:
             this.components = this.target.insertButton(this.position, {
                 xtype: "button",
-                tooltip: "tooltip",
                 iconCls: "addon-traveler",
                 handler: this._onCheckchange,
                 scope: this
