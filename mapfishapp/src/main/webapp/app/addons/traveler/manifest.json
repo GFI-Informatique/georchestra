@@ -15,7 +15,6 @@
     	"IGN_URL":"http://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/itineraire/rest/route.json",
     	"DEACCENTUATE_QUERYSTRING": "true",
     	"GEOSERVER_WFS_URL":"/geoserver/wfs",
-    	"EPSG":"epsg:3857",
     	"RESULT_STYLE": {
             "strokeColor": "#00b3fd",
             "strokeOpacity": 1,
@@ -28,7 +27,8 @@
             "fillColor":"white",
             "strokeColor": "black",            
             "strokeWidth": 2            
-        }
+        },
+        "RIGHT_MSG": "Vous devez être connecté pour utiliser ce module. Merci de prendre contact avec un administrateur."
     },
     "i18n": {
         "en": {
@@ -36,7 +36,8 @@
 
         },        
         "fr": {
-        	"traveler.window_title":"Calcul d'itinéraire"
+        	"traveler.window_title":"Calcul d'itinéraire",
+        	"traveler.msg.noright": "Accès interdit"
         } 
     }
 }

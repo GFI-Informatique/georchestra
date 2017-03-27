@@ -42,7 +42,7 @@
 }
 
 .walk-over {
-	background-image: url(../img/walk-hover-bis.png);	
+	background-image: url(../img/walk-hover.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
@@ -72,6 +72,10 @@
 	width: 24px !important;		
 }
 
+.refresh:hover{
+	background-image: url(../img/refresh-hover.png);
+}
+
 .calcul{
 	background-image: url(../img/flag-blue.png);
 	height: 24px !important;
@@ -93,6 +97,12 @@
 
 
 .gpsIcon {
+	background-image: url(../img/16px/gps_blue_white.png);
+	background-repeat:no-repeat;
+	margin-left:-16px !important;	
+}
+
+.gpsIcon:hover {
 	background-image: url(../img/16px/gps-blue.png);
 	background-repeat:no-repeat;
 	margin-left:-16px !important;	
@@ -111,13 +121,13 @@
 }
 
 .rmIcon {
-	background-image: url(../img/16px/clear-pressed.png);
+	background-image: url(../img/16px/clear-blue.png);
 	background-repeat:no-repeat;
 	margin-left:-5px !important;		
 }
 
 .rmHover{
-	background-image: url(../img/16px/clear-blue.png);
+	background-image: url(../img/16px/clear-pressed.png);
 	background-repeat:no-repeat;
 	margin-left:-5px !important;		
 }

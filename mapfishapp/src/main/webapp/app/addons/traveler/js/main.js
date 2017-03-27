@@ -49,6 +49,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         return layerAddon;
     },
 
+    /**
+     * Method: resultLayer
+     * create layer to contain route
+     *     
+     */
     resultLayer: function() {
         var resultLayer;
 
@@ -80,7 +85,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     },
 
     /**
-     * Method: addDrawControl
+     * Method: drawControl
      * create control to draw point by click if not exist
      *     
      */
@@ -352,8 +357,11 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 cls: "actionBtn",
                 hidden: isStart,
                 handler: function() {
-                    //observable.fireEvent("addPoint",observable);
-                    travelerAddon.insertFset(panel, window);
+                	if(Ext.getCmp("wayPointPanel")){
+                		var panel = Ext.getCmp("wayPointPanel");
+                		travelerAddon.insertFset(panel, window);
+                	}
+                    
                 },
                 listeners: {
                     "mouseover": function() {
@@ -456,6 +464,72 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             this.win.syncShadow()
         }
     },
+    
+    /**
+     * Method: resetWindow
+     * refresh window when user click on refresh button
+     */
+    
+    refresh : function (){
+    	if(Ext.getCmp("travWindow")){
+    		Ext.getCmp("travWindow").close();
+    		if(this.win){
+    			this.win();
+    		}
+    		if(Ext.getCmp("travWindow")){
+    			return Ext.getCmp("travWindow").show();
+    		}
+    	} 
+    },
+
+    
+    /**
+     * Method: initWindow
+     * Generate window to set params and way point
+     */
+
+    win : function(){
+    	var addon = this;
+    	
+    	if(Ext.getCmp("travWindow")){
+    		return Ext.getCmp("travWindow");
+    	} else {
+        	return new Ext.Window({
+                title: OpenLayers.i18n("traveler.window_title"),
+                constrainHeader: true,
+                autoHeight: true,
+                width: 290,
+                id:"travWindow",
+                autoScroll: true,
+                closable: true,
+                closeAction: "hide",
+                resizable: false,
+                collapsible: true,
+                items: [addPanel()],
+                buttonAlign: 'center',
+                fbar: [{
+                    iconCls: "refresh",
+                    tooltip: "Recommencer",
+                    id: "trav_refresh",
+                    cls: "actionBtn",
+                    handler: function(){
+                    	addon.refresh();
+                    }
+                }],
+                listeners: {
+                    "hide": function() {
+                        // remove all features
+                        if (addon.layer()) {
+                        	addon.layer().removeAllFeatures();
+                        }
+                        if (addon.resultLayer()) {
+                        	addon.resultLayer().removeAllFeatures();
+                        }
+                    }
+                }
+            });
+    	}
+    },
 
     /**
      * Method: insertFset
@@ -491,9 +565,16 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
      */
     init: function(record) {
         
-        if(GEOR.config.ANONYMOUS){
-            return;
-        }
+    	// use to call addon's scope
+        var travelerAddon = this;
+    	
+        // do not load addon if user is not connect to map viewer
+        
+        /*if(GEOR.config.ANONYMOUS){
+            return Ext.Msg.alert(
+                    OpenLayers.i18n("traveler.msg.noright"),
+                    travelerAddon.options.RIGHT_MSG);
+        }*/
 
         // get map viewer
         var map = this.map;
@@ -515,288 +596,247 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
 
         // create control to draw point
         this.drawControl();
+        
 
 
         // create buttons to select type of transport
-        var modeBtn = new Ext.form.CompositeField({
-            // first window's panel
-            cls: "cpMode",
-            items: [{
-                xtype: "button",
-                height: 35,
-                id: "walkBtn",
-                width: 35,
-                enableToggle: true,
-                toggleGroup: "modeBtn",
-                iconCls: "walkBtn",
-                cls: "walkStyle",
-                listeners: {
-                    "mouseover": function() {
-                        if (!this.pressed) {
-                            this.setIconClass("walk-over");
-                        }
-                    },
-                    "mouseout": function() {
-                        if (!this.pressed) {
-                            this.setIconClass("walkBtn");
-                        }
-                    },
-                    "toggle": function() {
-                        if (this.pressed) {
-                            this.setIconClass("walk-pressed");
-                            GEOR.Addons.traveler.getRoad(travelerAddon);
-                        } else {
-                            this.setIconClass("walkBtn");
-                        }
-                    }
-                }
-            }, {
-                xtype: "button",
-                iconCls: "car-pressed",
-                id: "carBtn",
-                enableToggle: true,
-                pressed: true,
-                height: 35,
-                toggleGroup: "modeBtn",
-                width: 35,
-                cls: "carStyle",
-                listeners: {
-                    "mouseover": function() {
-                        if (!this.pressed) {
-                            this.setIconClass("car-over");
-                        }
-                    },
-                    "mouseout": function() {
-                        if (!this.pressed) {
-                            this.setIconClass("carBtn");
-                        }
-                    },
-                    "toggle": function() {
-                        if (this.pressed) {
-                            this.setIconClass("car-pressed");
-                            GEOR.Addons.traveler.getRoad(travelerAddon);
-                        } else {
-                            this.setIconClass("carBtn");
-                        }
-                    }
-                }
-            }]
-        });
+        var modeBtn = function(){
+        	return new Ext.form.CompositeField({
+	            // first window's panel
+	            cls: "cpMode",
+	            items: [{
+	                xtype: "button",
+	                height: 35,
+	                id: "walkBtn",
+	                width: 35,
+	                enableToggle: true,
+	                toggleGroup: "modeBtn",
+	                iconCls: "walkBtn",
+	                cls: "walkStyle",
+	                listeners: {
+	                    "mouseover": function() {
+	                        if (!this.pressed) {
+	                            this.setIconClass("walk-over");
+	                        }
+	                    },
+	                    "mouseout": function() {
+	                        if (!this.pressed) {
+	                            this.setIconClass("walkBtn");
+	                        }
+	                    },
+	                    "toggle": function() {
+	                        if (this.pressed) {
+	                            this.setIconClass("walk-pressed");
+	                            GEOR.Addons.traveler.getRoad(travelerAddon);
+	                        } else {
+	                            this.setIconClass("walkBtn");
+	                        }
+	                    }
+	                }
+	            }, {
+	                xtype: "button",
+	                iconCls: "car-pressed",
+	                id: "carBtn",
+	                enableToggle: true,
+	                pressed: true,
+	                height: 35,
+	                toggleGroup: "modeBtn",
+	                width: 35,
+	                cls: "carStyle",
+	                listeners: {
+	                    "mouseover": function() {
+	                        if (!this.pressed) {
+	                            this.setIconClass("car-over");
+	                        }
+	                    },
+	                    "mouseout": function() {
+	                        if (!this.pressed) {
+	                            this.setIconClass("carBtn");
+	                        }
+	                    },
+	                    "toggle": function() {
+	                        if (this.pressed) {
+	                            this.setIconClass("car-pressed");
+	                            GEOR.Addons.traveler.getRoad(travelerAddon);
+	                        } else {
+	                            this.setIconClass("carBtn");
+	                        }
+	                    }
+	                }
+	            }]
+	        });
+        };
 
-        this.panel = new Ext.Panel({
-            autoScroll: true,
-            hidden: false,
-            id: "wayPointPanel",
-            items: [modeBtn, {
-                xtype: "fieldset",
-                collapsible: true,
-                collapsed: true,
-                title: "Options",
-                cls: "fsOptions",
-                items: [{
-                    xtype: "compositefield",
-                    hideLabel: true,
-                    id: "methodRadio",
-                    items: [{
-                        xtype: "radio",
-                        checked: true,
-                        hideLabel: true,
-                        boxLabel: "Le plus rapide",
-                        id: "timeRadio",
-                        value: "TIME",
-                        name: "method",
-                        listeners:{
-                            check: function(c){
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-                            },scope:this
-                        }                        
-                    }, {
-                        xtype: "spacer",
-                        width: "5"
-                    }, {
-                        xtype: "radio",
-                        hideLabel: true,
-                        id: "distanceRadio",
-                        name: "method",
-                        value: "DISTANCE",
-                        boxLabel: "Le plus court",
-                        listeners:{
-                            check: function(c){
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-                            },scope:this
-                        }                                               
-                    }, {
-                        xtype: "spacer",
-                        height: "25"
-                    }]
-                }, {
-                    xtype: "compositefield",
-                    id: "excludeCheck",
-                    hideLabel: true,
-                    items: [{
-                        xtype: "checkbox",
-                        tooltip:"Eviter les péages",
-                        boxLabel: "Péages",
-                        id: "tollRadio",
-                        labelWidth: 20,
-                        hideLabel: true,
-                        value: "Toll",
-                        listeners:{
-                            check: function(c){                            
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-                            },scope:this
-                        }                        
-                    }, {
-                        xtype: "checkbox",
-                        boxLabel: "Ponts",
-                        tooltip:"Eviter les ponts",
-                        id: "bridgeRadio",
-                        hideLabel: true,
-                        value: "Bridge",
-                        listeners:{
-                            check: function(c){
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-
-                            },scope:this
-                        }                        
-                    }, {
-                        xtype: "checkbox",
-                        boxLabel: "Tunnels",
-                        id: "tunnelRadio",
-                        tooltip:"Eviter les tunnels",
-                        hideLabel: true,
-                        value: "Tunnel",
-                        listeners:{
-                            check: function(c){
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-                            },scope:this
-                        }
-                    }]
-                }],
-                listeners:{
-                    "collapse": function() {
-                        if (travelerAddon.win) {
-                            travelerAddon.win.syncShadow();
-                        }
-                    },
-                    "expand": function() {
-                        if (travelerAddon.win) {
-                            travelerAddon.win.syncShadow();
-                        }
-                    }
-                }
-            },{
-                xtype:"spacer",
-                height:"10"
-            },{
-                xtype:"fieldset",
-                title:"Détail du parcours",
-                hidden:true,
-                id:"trav_result",
-                collapsible: true,
-                collapsed:true,
-                cls: "fsInfo",
-                items:[{                
-                    xtype:"textfield",
-                    id:"trav_dist",
-                    width:60,
-                    fieldLabel:"Distance ",
-                    readOnly:true,
-                    style: {
-                        borderWidth:"0px"
-                    },
-                    labelStyle: 'font-size:11px;'
-                },{                
-                    xtype:"textfield",
-                    width:60,
-                    id:"trav_time",
-                    fieldLabel:"Temps ",                    
-                    readOnly:true,
-                    style: {
-                        borderWidth:"0px"
-                    },
-                    labelStyle: 'font-size:11px;'
-                }],
-                listeners:{
-                    "collapse": function() {
-                        if (travelerAddon.win) {
-                            travelerAddon.win.syncShadow();
-                        }
-                    },
-                    "expand": function() {
-                        if (travelerAddon.win) {
-                            travelerAddon.win.syncShadow();
-                        }
-                    },
-                    "show": function(f){
-                        if(f.collapsed){
-                            f.expand();
-                        }
-                    }
-                }
-            }
-                   ],
-            listeners: {
-                "added": function(panel) {
-                    panel.insert(1, travelerAddon.addStep(true, true, "startPoint"));
-                    panel.insert(2, travelerAddon.addStep(false, true, "endPoint"));
-                }
-            }
-
-        });
-
-        // create main window containing free text combo
-        this.win = new Ext.Window({
-            title: OpenLayers.i18n("traveler.window_title"),
-            constrainHeader: true,
-            autoHeight: true,
-            width: 290,
-            autoScroll: true,
-            closable: true,
-            closeAction: "hide",
-            resizable: false,
-            collapsible: true,
-            items: [this.panel],
-            buttonAlign: 'center',
-            fbar: [{
-                iconCls: "refresh",
-                tooltip: "Recommencer",
-                id: "trav_refresh",
-                cls: "actionBtn"
-            },{
-                xtype:"spacer",
-                width:20
-            },{
-                iconCls: "detail",
-                hidden:true,                
-                tooltip: "Imprimer",
-                id: "trav_print",
-                cls: "actionBtn"
-            }],
-            listeners: {
-                "hide": function() {
-                    // remove all features
-                    if (travelerAddon.layer()) {
-                        travelerAddon.layer().removeAllFeatures();
-                    }
-                    if (travelerAddon.resultLayer()) {
-                        travelerAddon.resultLayer().destroy();
-                    }
-
-                }
-            }
-        });
-
-
+        addPanel = function(){ 
+        	return new Ext.Panel({
+	            autoScroll: true,
+	            hidden: false,
+	            id: "wayPointPanel",
+	            items: [modeBtn(), {
+	                xtype: "fieldset",
+	                collapsible: true,
+	                collapsed: true,
+	                title: "Options",
+	                cls: "fsOptions",
+	                items: [{
+	                    xtype: "compositefield",
+	                    hideLabel: true,
+	                    id: "methodRadio",
+	                    items: [{
+	                        xtype: "radio",
+	                        checked: true,
+	                        hideLabel: true,
+	                        boxLabel: "Le plus rapide",
+	                        id: "timeRadio",
+	                        value: "TIME",
+	                        name: "method",
+	                        listeners:{
+	                            check: function(c){
+	                                GEOR.Addons.traveler.getRoad(travelerAddon);
+	                            },scope:this
+	                        }                        
+	                    }, {
+	                        xtype: "spacer",
+	                        width: "5"
+	                    }, {
+	                        xtype: "radio",
+	                        hideLabel: true,
+	                        id: "distanceRadio",
+	                        name: "method",
+	                        value: "DISTANCE",
+	                        boxLabel: "Le plus court",
+	                        listeners:{
+	                            check: function(c){
+	                                GEOR.Addons.traveler.getRoad(travelerAddon);
+	                            },scope:this
+	                        }                                               
+	                    }, {
+	                        xtype: "spacer",
+	                        height: "25"
+	                    }]
+	                }, {
+	                    xtype: "compositefield",
+	                    id: "excludeCheck",
+	                    hideLabel: true,
+	                    items: [{
+	                        xtype: "checkbox",
+	                        tooltip:"Eviter les péages",
+	                        boxLabel: "Péages",
+	                        id: "tollRadio",
+	                        labelWidth: 20,
+	                        hideLabel: true,
+	                        value: "Toll",
+	                        listeners:{
+	                            check: function(c){                            
+	                                GEOR.Addons.traveler.getRoad(travelerAddon);
+	                            },scope:this
+	                        }                        
+	                    }, {
+	                        xtype: "checkbox",
+	                        boxLabel: "Ponts",
+	                        tooltip:"Eviter les ponts",
+	                        id: "bridgeRadio",
+	                        hideLabel: true,
+	                        value: "Bridge",
+	                        listeners:{
+	                            check: function(c){
+	                                GEOR.Addons.traveler.getRoad(travelerAddon);
+	
+	                            },scope:this
+	                        }                        
+	                    }, {
+	                        xtype: "checkbox",
+	                        boxLabel: "Tunnels",
+	                        id: "tunnelRadio",
+	                        tooltip:"Eviter les tunnels",
+	                        hideLabel: true,
+	                        value: "Tunnel",
+	                        listeners:{
+	                            check: function(c){
+	                                GEOR.Addons.traveler.getRoad(travelerAddon);
+	                            },scope:this
+	                        }
+	                    }]
+	                }],
+	                listeners:{
+	                    "collapse": function() {
+	                        if (travelerAddon.win()) {
+	                            travelerAddon.win().syncShadow();
+	                        }
+	                    },
+	                    "expand": function() {
+	                        if (travelerAddon.win()) {
+	                            travelerAddon.win().syncShadow();
+	                        }
+	                    }
+	                }
+	            },{
+	                xtype:"spacer",
+	                height:"10"
+	            },{
+	                xtype:"fieldset",
+	                title:"Détail du parcours",
+	                hidden:true,
+	                id:"trav_result",
+	                collapsible: true,
+	                collapsed:true,
+	                cls: "fsInfo",
+	                items:[{                
+	                    xtype:"textfield",
+	                    id:"trav_dist",
+	                    width:60,
+	                    fieldLabel:"Distance ",
+	                    readOnly:true,
+	                    style: {
+	                        borderWidth:"0px"
+	                    },
+	                    labelStyle: 'font-size:11px;'
+	                },{                
+	                    xtype:"textfield",
+	                    width:60,
+	                    id:"trav_time",
+	                    fieldLabel:"Temps ",                    
+	                    readOnly:true,
+	                    style: {
+	                        borderWidth:"0px"
+	                    },
+	                    labelStyle: 'font-size:11px;'
+	                }],
+	                listeners:{
+	                    "collapse": function() {
+	                        if (travelerAddon.win()) {
+	                            travelerAddon.win().syncShadow();
+	                        }
+	                    },
+	                    "expand": function() {
+	                        if (travelerAddon.win()) {
+	                            travelerAddon.win().syncShadow();
+	                        }
+	                    },
+	                    "show": function(f){
+	                        if(f.collapsed){
+	                            f.expand();
+	                        }
+	                    }
+	                }
+	            }
+	                   ],
+	            listeners: {
+	                "added": function(panel) {
+	                    panel.insert(1, travelerAddon.addStep(true, true, "startPoint"));
+	                    panel.insert(2, travelerAddon.addStep(false, true, "endPoint"));
+	                }
+	            }
+	        });        
+        };
+        
         if (this.target) {
             // create a button to be inserted in toolbar:
             this.components = this.target.insertButton(this.position, {
                 xtype: "button",
                 tooltip: "tooltip",
                 iconCls: "addon-traveler",
-                handler: function() {
-                    this.win.show();
-                },
+                handler: this._onCheckchange,
                 scope: this
             });
             this.target.doLayout();
@@ -806,24 +846,42 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 text: this.getText(record),
                 qtip: this.getQtip(record),
                 iconCls: "addon-traveler",
-                handler: function() {
-                    this.win.show();
-                },
+                handler: this._onCheckchange,
                 scope: this
             });
         }
     },
+    
+    /**
+     * Method: _onCheckchange Callback on checkbox state changed
+     * when called from toolbar button, checked is an mouseevent object
+     * when called from tools menu checkitem or manually from openToolbarOnLoad, checked is a boolean
+     */    
 
-
+    _onCheckchange: function() {
+    	if(this.win().isVisible()){
+    		this.win().hide();    	
+    	} else {
+    		this.win().show();
+    	}     	
+    },
 
     /**
      * Method: destroy
      * Called by GEOR_tools when deselecting this addon
      */
     destroy: function() {
-        this.win.destroy();
-        this.layer().destroy();
-        this.resultLayer.destroy();
+    	if(this.win()){
+    		this.win().destroy();
+    	}
+        
+    	if(this.layer()){
+    		this.layer().destroy();
+    	}
+                
+        if(this.resultLayer()){
+        	this.resultLayer().destroy();
+    	}        
 
         GEOR.Addons.Base.prototype.destroy.call(this);
     }
