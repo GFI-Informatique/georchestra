@@ -61,7 +61,9 @@
 			"traveler.result.distance": "Distance ",
 			"traveler.result.time": "Temps ",
 			"traveler.result.title": "Détail du parcours",
-			"traveler.drawpoint.tooltip": "Dessiner un point à main levée"
+			"traveler.drawpoint.tooltip": "Dessiner un point à main levée",
+			"traveler.addpoint.tooltip": "Ajouter une étape",
+			"traveler.removepoint.tooltip": "Retirer une étape"
         } 
     }
 }
