@@ -12,7 +12,7 @@
     	"BAN_URL":"https://api-adresse.data.gouv.fr/search/?",
     	"LAYER_WORKSPACE":"geor_loc",
     	"NB_RESULT":5,
-    	"IGN_URL":"http://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/itineraire/rest/route.json",
+    	"IGN_URL":"http://wxs.ign.fr/r4g8nxstfipd0gram0iqgbs4/itineraire/rest/route.json",
     	"DEACCENTUATE_QUERYSTRING": "true",
     	"GEOSERVER_WFS_URL":"/geoserver/wfs",
     	"RESULT_STYLE": {
@@ -32,7 +32,35 @@
     },
     "i18n": {
         "en": {
-        	"traveler.window_title":"Route calculation"
+        	"traveler.window_title":"Route calculation",
+            "traveler.msg.noright": "Access restricted",
+        	"traveler.referential.checkbox":"Reference",
+			"traveler.ban.emptytext":"Adress...",
+			"traveler.ban.tooltip":"Entering an adress...",
+			"traveler.options.title":"Options",
+			"traveler.options.fast":"The fastest",
+			"traveler.options.distance":"The shortest",
+			"traveler.options.checkbox.toll":"Toll",
+			"traveler.options.checkbox.bridge":"Bridge",
+			"traveler.options.checkbox.tunels":"Tunnels",
+			"traveler.refresh.tooltip":"Restart",
+			"traveler.options.toll.tooltip": "Avoid tolls",
+			"traveler.options.bridge.tooltip": "Avoid bridges",
+			"traveler.options.tunnels.tooltip": "Avoid tunnels",
+			"traveler.referential.combolayer.tooltip": "Open layers list",
+			"traveler.referential.combolayer.emptytext": "Select a layer",
+			"traveler.referential.comboref.emptytext": "Choose reference",
+			"traveler.referential.comboref.loading": "Load...",
+			"traveler.referential.nogeom":"No geometry column in the selected layer",
+			"traveler.method.car.tooltip":"Traveling by car",
+			"traveler.method.walk.tooltip":"Traveling by foot",
+			"traveler.result.distance": "Distance ",
+			"traveler.result.time": "Time ",
+			"traveler.result.title": "Course details",
+			"traveler.drawpoint.tooltip": "Draw point by click",
+			"traveler.addpoint.tooltip": "Add step",
+			"traveler.removepoint.tooltip": "Remove step",
+			"traveler.print.tooltip": "Export navigation details"
 
         },        
         "fr": {
@@ -45,7 +73,7 @@
 			"traveler.options.fast":"Le plus rapide",
 			"traveler.options.distance":"Le plus court",
 			"traveler.options.checkbox.toll":"Péages",
-			"traveler.options.checkbox.bridge":"Péages",
+			"traveler.options.checkbox.bridge":"Ponts",
 			"traveler.options.checkbox.tunels":"Tunnels",
 			"traveler.refresh.tooltip":"Recommencer",
 			"traveler.options.toll.tooltip": "Eviter les péages",
@@ -54,7 +82,7 @@
 			"traveler.referential.combolayer.tooltip": "Ouvrir la liste des couches",
 			"traveler.referential.combolayer.emptytext": "Sélectionner une couche",
 			"traveler.referential.comboref.emptytext": "Choisir un référentiel",
-			"traveler.referential.comboref.loading": "Chargement",
+			"traveler.referential.comboref.loading": "Chargement...",
 			"traveler.referential.nogeom":"Aucune géométry dans le référentiel sélectionné",
 			"traveler.method.car.tooltip":"Déplacement en voiture",
 			"traveler.method.walk.tooltip":"Déplacement piéton",
@@ -63,7 +91,8 @@
 			"traveler.result.title": "Détail du parcours",
 			"traveler.drawpoint.tooltip": "Dessiner un point à main levée",
 			"traveler.addpoint.tooltip": "Ajouter une étape",
-			"traveler.removepoint.tooltip": "Retirer une étape"
+			"traveler.removepoint.tooltip": "Retirer une étape",
+			"traveler.print.tooltip": "Exporter la feuille de route"
         } 
     }
 }

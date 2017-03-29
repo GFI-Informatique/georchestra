@@ -12,7 +12,7 @@ GEOR.Addons.traveler.getRoad = function(addon) {
 
     settings.origin = "";
     settings.destination = "";
-    
+
     // default projection use to display data on map
     settings.srs = addon.map.getProjectionObject();;
 
@@ -69,6 +69,7 @@ GEOR.Addons.traveler.getRoad = function(addon) {
     // parse geom from service to display result and zoom on bound
     function parseWKT(geom, layer, map, json) {
         var road;
+        var bounds;
 
         // to display only one result
         layer.removeAllFeatures();
@@ -76,25 +77,23 @@ GEOR.Addons.traveler.getRoad = function(addon) {
         // get geom from WKT and create feature
         var wkt = new OpenLayers.Format.WKT();
         var features = wkt.read(geom);
-
         layer.addFeatures(features);
-
 
         if (layer.getFeatureById(features.id)) {
             road = layer.getFeatureById(features.id);
         }
-        var bounds;
+
         if (road) {
             if (road.constructor != Array) {
                 road = [road];
             }
             for (var i = 0; i < road.length; ++i) {
+                // get feature bound if not exist
                 if (!bounds) {
                     bounds = road[i].geometry.getBounds();
                 } else {
                     bounds.extend(road[i].geometry.getBounds());
                 }
-
             }
 
             // set point layer to front
@@ -106,36 +105,35 @@ GEOR.Addons.traveler.getRoad = function(addon) {
             // zoom to result extent
             addon.map.zoomToExtent(bounds);
 
-            // here, populate result fields with informations
-            
-            var d = json.distance;
-            var ts = json.durationSeconds;
-            var t = json.duration;
-            
-            var tCut = t.split(":");
-            var tStr = tCut[0]+" h "+tCut[1]+" min";
-            
-            if (Ext.getCmp("trav_result")) {
-                Ext.getCmp("trav_result").show(); 
-            }
-            
-            if (Ext.getCmp("trav_dist") && t) {
-                Ext.getCmp("trav_dist").setValue(d); 
-            }
+            // display time and distance informations
+            if (json.duration || json.distance) {
+                var tCut = json.duration.split(":");
+                var tStr = tCut[0] + " h " + tCut[1] + " min";
 
-            if (Ext.getCmp("trav_time") && t) {
-                Ext.getCmp("trav_time").setValue(tStr);
-            }         
+                if (Ext.getCmp("trav_result")) {
+                    Ext.getCmp("trav_result").show();
+                }
+
+                if (Ext.getCmp("trav_dist") && json.distance) {
+                    Ext.getCmp("trav_dist").setValue(d);
+                }
+
+                if (Ext.getCmp("trav_time") && tStr) {
+                    Ext.getCmp("trav_time").setValue(tStr);
+                }
+            }
 
         } else {
             alert('Bad WKT');
         }
-        
+
     }
 
     if (settings.origin && settings.origin != "" && settings.destination && settings.destination != "") {
-        // fire request
+        // display load item
         GEOR.waiter.show();
+
+        // fire request
         var request = new OpenLayers.Request.GET({
             url: url,
             params: settings,
@@ -143,14 +141,44 @@ GEOR.Addons.traveler.getRoad = function(addon) {
             callback: function(request) {
                 if (request.responseText) {
                     var decode = JSON.parse(request.responseText);
+
+                    // display result on map and get navigation infos
                     if (decode && decode.geometryWkt) {
                         // get geom from json 
                         var geomWKT = decode.geometryWkt;
 
                         // create route from WKT 
                         parseWKT(geomWKT, addon.resultLayer(), addon.layer().map, decode);
+
+                        // get navigation steps
+                        if (decode.legs && decode.legs.length > 0) {
+                            var steps = [];
+                            var section = decode.legs;
+
+                            section.forEach(function(el, index) {
+                                el.steps.forEach(function(el, index) {
+                                    steps.push(el);
+                                })
+                            })
+
+                            GEOR.Addons.traveler.navInfos = steps;
+                        }
                     }
+                    // get navigation details from json
+                    if (decode.legs && decode.legs.length > 0) {
+                        var steps = [];
+                        var section = decode.legs;
+
+                        section.forEach(function(el, index) {
+                            el.steps.forEach(function(el, index) {
+                                steps.push(el);
+                            })
+                        })
+                    }
+                } else {
+                    console.log("Request fail");
                 }
+                GEOR.waiter.hide();
             }
         });
     } else {
