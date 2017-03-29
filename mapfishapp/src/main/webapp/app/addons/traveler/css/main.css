@@ -82,11 +82,15 @@
 	width: 24px !important;		
 }
 
-.detail{
+.navIcon {
     background-image: url(../img/directions.png);	
 	height: 24px !important;
 	width: 24px !important;
-	background-color: white !important ;
+}
+
+.navIcon:hover {
+	background-image: url(../img/directions_24px.png);
+	
 }
 
 .fieldBtn .x-btn-noicon,.fieldBtn .x-btn-small,.fieldBtn .x-btn-text {
@@ -97,7 +101,7 @@
 
 
 .gpsIcon {
-	background-image: url(../img/16px/gps_blue_white.png);
+	background-image: url(../img/16px/gps-pressed.png);
 	background-repeat:no-repeat;
 	margin-left:-16px !important;	
 }
@@ -129,10 +133,8 @@
 	margin-left:-5px !important;		
 }
 
-.rmHover{
-	background-image: url(../img/16px/clear-pressed.png);
-	background-repeat:no-repeat;
-	margin-left:-5px !important;		
+.rmIcon:hover{
+	background-image: url(../img/16px/clear-hover.png);		
 }
 
 .fBan {
