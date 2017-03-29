@@ -858,6 +858,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         if (this.win()) {
             this.win().destroy();
         }
+        
+    	if(GEOR.Addons.traveler.navInfos){
+    		GEOR.Addons.traveler.navInfos = null;
+    	}
 
         if (this.layer()) {
             this.layer().destroy();
