@@ -73,6 +73,9 @@ GEOR.Addons.traveler.getRoad = function(addon) {
 
         // to display only one result
         layer.removeAllFeatures();
+        if(Ext.getCmp("trav_nav")){
+        	Ext.getCmp("trav_nav").hide();
+        }
 
         // get geom from WKT and create feature
         var wkt = new OpenLayers.Format.WKT();
@@ -174,6 +177,12 @@ GEOR.Addons.traveler.getRoad = function(addon) {
                                 steps.push(el);
                             })
                         })
+                        
+                        if(steps.length > 0){
+                            if(Ext.getCmp("trav_nav")){
+                            	Ext.getCmp("trav_nav").show();
+                            }
+                        }
                     }
                 } else {
                     console.log("Request fail");

@@ -160,6 +160,9 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 GEOR.Addons.traveler.getRoad(addon);
             } else {
                 resultLayer.removeAllFeatures();
+                if(Ext.getCmp("trav_nav")){
+                	Ext.getCmp("trav_nav").hide();
+                }
             }
 
         }
@@ -503,6 +506,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                         }
                         if (addon.resultLayer()) {
                             addon.resultLayer().removeAllFeatures();
+                        }
+                        
+                        if(Ext.getCmp("trav_nav")){
+                        	Ext.getCmp("trav_nav").hide();
                         }
                     }
                 }
