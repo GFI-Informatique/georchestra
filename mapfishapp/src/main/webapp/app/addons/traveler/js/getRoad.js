@@ -118,7 +118,7 @@ GEOR.Addons.traveler.getRoad = function(addon) {
                 }
 
                 if (Ext.getCmp("trav_dist") && json.distance) {
-                    Ext.getCmp("trav_dist").setValue(d);
+                    Ext.getCmp("trav_dist").setValue(json.distance);
                 }
 
                 if (Ext.getCmp("trav_time") && tStr) {
