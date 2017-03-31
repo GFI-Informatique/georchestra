@@ -444,13 +444,20 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     refresh: function() {
         if (Ext.getCmp("travWindow")) {
             Ext.getCmp("travWindow").close();
-            if (this.win) {
-                this.win();
-            }
-            if (Ext.getCmp("travWindow")) {
-                return Ext.getCmp("travWindow").show();
-            }
         }
+        
+        if(GeoExt.MapPanel.guess().map.getControlsBy("id", "traveler_point_ctrl").length == 1){
+        	GeoExt.MapPanel.guess().map.getControlsBy("id", "traveler_point_ctrl")[0].destroy();
+        }
+        
+        if (this.win) {
+            this.win();
+        }
+        
+        if (Ext.getCmp("travWindow")) {
+            return Ext.getCmp("travWindow").show();
+        }
+        
     },
     
     
@@ -734,31 +741,25 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
     init: function(record) {
         // use to call addon's scope
         var travelerAddon = this;
+        
+        // refresh addon when wmc is restore
+        GEOR.wmc.events.on("aftercontextrestore", function(){
+            travelerAddon.refresh();
+        });
 
         // do not load addon if user is not connect to map viewer
-        /*if (GEOR.config.ANONYMOUS) {
+        if (GEOR.config.ANONYMOUS) {
             return Ext.Msg.alert(
                 OpenLayers.i18n("traveler.msg.noright"),
                 travelerAddon.options.RIGHT_MSG);
-        }*/
+        }
 
-        // get map viewer
-        var map = this.map;
 
         // create wgs84 projection
         var from = new OpenLayers.Projection("EPSG:4326")
 
         // get map projection    	
         var to = this.map.getProjectionObject();
-
-        // get addon layer use to display points
-        var layerAddon = this.layer();
-
-        // get table of key value to find step or points 
-        var featureArray = this.featureArray;
-
-        // use to call addon's scope
-        var travelerAddon = this;
 
         // create control to draw point
         this.drawControl();
