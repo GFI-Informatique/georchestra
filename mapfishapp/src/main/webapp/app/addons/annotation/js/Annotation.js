@@ -202,6 +202,36 @@ GEOR.Annotation = Ext.extend(Ext.util.Observable, {
         layer = new OpenLayers.Layer.Vector("__georchestra_annotations", layerOptions);
         this.layer = layer;
         this.map.addLayer(layer);
+        
+        // manage layer if wmc is load or layer is remove
+        function upLayer (layer){
+            if(layer){
+            	var l = GeoExt.MapPanel.guess().map.layers;
+            	l.forEach(function(el){
+            		// transform string layer z index to integer
+            		var index = parseInt(el.getZIndex());
+        			// up layer only if other layer is front of annotation
+            		if(index > parseInt(layer.getZIndex()) ){
+            			layer.setZIndex(index + 1);
+            		} 
+            	});
+			}
+    	}
+        
+        // up annotation layer to front if contexte is restore
+        GEOR.wmc.events.on("aftercontextrestore", function(){
+        	upLayer(layer);
+        });            	
+    	
+        // up annotation layer to front layer is added
+        GEOR.layerfinder.events.on("layeradded", function(){
+        	upLayer(layer);
+        });
+        
+        // up annotation layer to front layer is removed
+        GEOR.managelayers.events.on("layerremoved", function(){
+        	upLayer(layer);
+        });        
 
         layer.events.on({
             "beforefeatureselected": this.onBeforeFeatureSelect,

@@ -30,6 +30,15 @@ GEOR.layerfinder = (function() {
     /*
      * Private
      */
+	
+    var observable = new Ext.util.Observable();
+    observable.addEvents(
+        /**
+         * Event: add 
+         * Fires when layer is added 
+         */    		
+        "layeradded"
+    );
 
     /**
      * Property: layerStore
@@ -480,12 +489,19 @@ GEOR.layerfinder = (function() {
         Ext.each(recordsToAdd, function(r) {
             layerStore.addSorted(r);
         });
+        
+        observable.fireEvent("layeradded");       
     };
 
     /*
      * Public
      */
     return {
+    	
+        /*
+         * Observable object
+         */
+        events: observable,
 
         /**
          * APIMethod: create

@@ -101,7 +101,14 @@ GEOR.managelayers = (function() {
          * Listener arguments:
          * panelCfg - {Object} Config object for a panel 
          */
-        "search"
+        "search",
+        
+        /**
+         * Event: layerremoved
+         * Fired after has been removed
+         */
+         
+        "layerremoved"
     );
 
     /**
@@ -186,6 +193,7 @@ GEOR.managelayers = (function() {
                 });
             } else {
                 layer.map.removeLayer(layer);
+                observable.fireEvent("layerremoved");
             }
             break;
         }

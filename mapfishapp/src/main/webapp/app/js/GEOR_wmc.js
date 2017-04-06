@@ -40,7 +40,14 @@ GEOR.wmc = (function() {
          * Listener arguments:
          * count - {Integer} the number of records to restore
          */
-        "beforecontextrestore"
+        "beforecontextrestore",
+        
+        /**
+         * Event: aftercontextrestore
+         * Fires after a context has been restore 
+         */
+        "aftercontextrestore"
+        
     );
 
     /**
@@ -324,6 +331,8 @@ GEOR.wmc = (function() {
                     GEOR.config.CONTEXT_LOADED_INDICATOR_DURATION
                 );
             }
+            
+            observable.fireEvent("aftercontextrestore");
         }
     };
 })();
