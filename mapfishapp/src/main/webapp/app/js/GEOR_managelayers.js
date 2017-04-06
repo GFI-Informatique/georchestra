@@ -106,8 +106,7 @@ GEOR.managelayers = (function() {
         /**
          * Event: layerremoved
          * Fired after has been removed
-         */
-         
+         */         
         "layerremoved"
     );
 
