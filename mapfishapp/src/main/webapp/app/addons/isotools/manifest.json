@@ -1,0 +1,28 @@
+{
+    "js": [
+        "js/main.js"    
+    ],
+    "css": [
+        "css/main.css"
+    ],
+    "default_options": {
+    	"RESULT_STYLE" : {
+			strokeColor : "black",
+			fillOpacity : "white",
+			pointRadius : 5,
+			strokeWidth : 2		
+    	},
+    	"ORIGIN_STYLE" : {
+            "pointRadius": 5,
+            "fillColor":"white",
+            "strokeColor": "black",            
+            "strokeWidth": 2  
+    	}
+    },
+    "i18n": {
+        "en": {
+        },        
+        "fr": {
+        } 
+    }
+}

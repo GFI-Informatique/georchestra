@@ -1,0 +1,17 @@
+[{
+        "id": "isotools_0",
+        "name": "isotools",
+        "enabled": true,
+        "preloaded":true,
+        "title": {
+            "en": "Isochronous calculation",
+            "es": "Cálculo de la isócrona",
+            "fr": "Calcul d'isochrones"
+        },
+        "description": {
+            "en": "Isochronous calculation with the IGN service",
+            "es": "Cálculo isócrona con Service IGN",
+            "fr": "Calcul d'isochrone avec le service IGN"
+        },
+        "options": {}
+}]
