@@ -1,5 +1,0 @@
-Ext.namespace("GEOR");
-
-GEOR.FeaturePanel = Ext.extend(Ext.form.FormPanel, {
-
-});
