@@ -1,0 +1,52 @@
+{
+    "js": [
+    	"js/referential.js",
+        "js/main.js",
+        "js/referential.js",
+        "js/route.js",
+        "js/isochrone.js"    
+    ],
+    "css": [
+        "css/main.css"
+    ],
+    "default_options": {
+    	"RESULT_STYLE": {
+            "strokeColor": "#00b3fd",
+            "strokeOpacity": 1,
+            "strokeWidth": 5,
+            "strokeLinecap": "round",
+            "strokeDashstyle": "solid"
+        },
+        "POINT_STYLE": {
+            "pointRadius": 5,
+            "fillColor":"white",
+            "strokeColor": "black",            
+            "strokeWidth": 2            
+        },
+        "GEOSERVER_WFS_URL":"/geoserver/wfs",
+        "LAYER_WORKSPACE":"geor_loc",
+        "NB_RESULT":5,
+        "DEACCENTUATE_REFERENTIALS_QUERYSTRING": true,
+        "BAN_URL":"https://api-adresse.data.gouv.fr/search/?",
+        "ROUTE_SERVICE":"http://wxs.ign.fr/r4g8nxstfipd0gram0iqgbs4/itineraire/rest/route.json",
+        "ACCESS_MSG": "Vous devez être connecté pour utiliser ce module. Merci de prendre contact avec un administrateur."
+        
+    },
+    "i18n": {
+        "en": {},        
+        "fr": {
+        	"isochrone": "Isochrones",        	
+        	"isochrone.window.title": "Calcul d'isochrones",
+        	"isochron.ban.emptytext": "Adresse....",
+        	"isochrone.ban.tooltip": "Saisir une adresse à afficher sur la carte",
+        	"isochrone.draw.tooltip" : "Point à main levé",
+        	"traveler.options.title":"Options",
+        	"traveler.isochrone.boxlabel.tunels": "Tunnels",
+        	"traveler.isochrone.boxlabel.bridge": "Ponts",
+        	"traveler.isochrone.boxtooltip.toll":"Péages",
+        	        	
+        	"route": "itinéraires",
+        	"route.window.title": "Calcul d'itinéraires"
+        } 
+    }
+}

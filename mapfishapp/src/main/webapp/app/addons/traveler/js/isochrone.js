@@ -126,7 +126,6 @@ GEOR.Addons.Traveler.isochrone.exclusions = function(){
         hideLabel: true,
         items:[{
             xtype: "checkbox",
-            tooltip: OpenLayers.i18n("traveler.isochrone.boxlabel.toll"),
             boxLabel: OpenLayers.i18n("traveler.isochrone.boxtooltip.toll"),
             id: "iso_toll",
             labelWidth: 20,
@@ -135,14 +134,12 @@ GEOR.Addons.Traveler.isochrone.exclusions = function(){
         }, {
             xtype: "checkbox",
             boxLabel: OpenLayers.i18n("traveler.isochrone.boxlabel.bridge"),
-            tooltip: OpenLayers.i18n("traveler.isochrone.boxtooltip.bridge"),
             id: "iso_bridge",
             hideLabel: true,
             value: "Bridge"
         }, {
             xtype: "checkbox",
             boxLabel: OpenLayers.i18n("traveler.isochrone.boxlabel.tunels"),
-            tooltip: OpenLayers.i18n("traveler.isochrone.boxtooltip.tunels"),
             id: "iso_tunnel",
             hideLabel: true,
             value: "Tunnel"
@@ -200,7 +197,7 @@ GEOR.Addons.Traveler.isochrone.ban = function(map,layer, service){
     return new Ext.form.ComboBox({ // create comboBox
         anchor: 200,
         id: "iso_ban",
-        emptyText: OpenLayers.i18n("isochron.ban.title"),
+        emptyText: OpenLayers.i18n("isochron.ban.emptytext"),
         tooltip: OpenLayers.i18n("isochron.ban.tooltip"),
         hideLabel: true,
         hideTrigger: true,
@@ -235,7 +232,7 @@ GEOR.Addons.Traveler.isochrone.banField = function(map, layer, banEl, control){
         items: [banEl, {
             xtype: "button",
             iconCls: "gpsIcon",
-            tooltip: tr("traveler.drawpoint.tooltip"),
+            tooltip: tr("isochrone.draw.tooltip"),
             cls: "actionBtn",
             handler: function(button) {
                 // manage draw control
@@ -252,41 +249,115 @@ GEOR.Addons.Traveler.isochrone.banField = function(map, layer, banEl, control){
     });
 };
 
+/**
+ * Check box pour utiliser le référentiel de données
+ */
+GEOR.Addons.Traveler.isochrone.refentialBox = function(banField, comboRef){
+	var tr = OpenLayers.i18n;
+    return new Ext.form.Checkbox({
+        hideLabel: true,
+        hidden: false,
+        boxLabel: tr("Rerential"),
+        listeners: {
+            "check": function() {
+                if (this.checked) {
+                    banField.hide();
+                    comboRef.show();
+                } else {
+                    comboRef.hide();
+                    banField.show();
+                }
+            }
+        }
+    });
+};
 
+/**
+ * Check box pour récupérer la géométrie stockée sur le navigateur
+ */
+GEOR.Addons.Traveler.isochrone.geometryBox = function(){
+	var tr = OpenLayers.i18n;
+    return new Ext.form.Checkbox({
+        hideLabel: true,
+        hidden: false,
+        boxLabel: tr("Geometry"),
+        listeners: {
+            "check": function() {
+                // get geometry from brower
+            }
+        }
+    });
+};
+
+GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban){
+	var items = [];
+	
+	var fields = new Ext.form.FieldSet({
+        autoWidht: true,
+        id: "iso_input",
+        items:[ban]
+    });	
+	
+	var comboRef =  GEOR.Addons.Traveler.referential.create(addon, fields);
+	
+	if(comboRef){
+		fields.add(comboRef);
+	}
+	
+	// create refenretial checkBox
+    if (comboRef.getStore() && (comboRef.getStore().url || !comboRef.getStore().url == "")) { 
+    	var checkRef = GEOR.Addons.Traveler.isochrone.refentialBox(ban, comboRef);   	    	
+    }    
+    if(checkRef){
+    	items.push(checkRef)
+    }
+    
+    // insert geometry check box
+    var geomBox = GEOR.Addons.Traveler.isochrone.geometryBox() ? GEOR.Addons.Traveler.isochrone.geometryBox() : false;  
+    if(geomBox){
+    	items.push(geomBox);
+    }
+    
+    if(items.length > 0){
+    	var cpField = new Ext.form.CompositeField({
+    		id:"iso_cpfCheck",
+    		items: items
+    	});
+    	fields.insert(0,cpField);
+    }
+    
+    return fields;
+};
 
 /**
  *  Création de la fenêtre de l'outil
  */
-GEOR.Addons.Traveler.isochrone.window = function(mode, ban, exclusion){
-	var tr = OpenLayers.i18n;
-	var tool = this;		
-	if(Ext.getCmp("iso_win")){
-		return Ext.getCmp("travel_win").destroy();
-	} else {				
-		return new Ext.Window({
-			id: "iso_win",
-			title: tr("isochrone.window.title"),
-			constrainHeader: true,
-			//autoHeight: true,
-			width: 290,
-			autoScroll: true,
-			closable: true,
-			closeAction: "hide",
-			resizable: true,
-			collapsible: true,
-			buttonAlign: "center",
-			items:[{
-				xtype: "panel",
-				id: "iso_panel",
-				items: [mode,{            
-                    xtype: "fieldset",
-                    collapsible: true,
-                    collapsed: true,
-                    id: "isoPanFset",
-                    title: OpenLayers.i18n("traveler.options.title"),
-                    items: [ban,exclusion]
-				}]
+GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion){
+	var tr = OpenLayers.i18n;	
+    
+	return new Ext.Window({
+		id: "iso_win",
+		title: tr("isochrone.window.title"),
+		constrainHeader: true,
+		//autoHeight: true,
+		width: 290,
+		autoScroll: true,
+		closable: true,
+		closeAction: "hide",
+		resizable: true,
+		collapsible: true,
+		buttonAlign: "center",
+		items:[{
+			xtype: "panel",
+			id: "iso_panel",
+			items: [mode,fSet,{            
+                xtype: "fieldset",
+                collapsible: true,
+                collapsed: true,
+                id: "iso_options",
+                title: tr("traveler.options.title"),
+                items: [exclusion]
 			}]
-		});
-	}	
+		}]
+	});
 };
