@@ -23,91 +23,7 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      * Method: routeField
      * get last field use to localize last way point
      */
-    routeField: null,
-    
-    /**
-     * Method: getLayer
-     * create or return layer according to a given identifier
-     * Params : 
-     * 		id - {string}      
-     * 		style - {string} name option corresponding to style set as option in manifest.json or config.json
-     */    
-    layer: function(id, style) {
-        var layer, style;
-        var addon = this;
-        
-        if(style){
-        	style = new OpenLayers.StyleMap(style);
-        } else{ 
-        	style = new OpenLayers.StyleMap({
-        		"default": new OpenLayers.Style({
-        			strokeColor: "orange",
-        			strokeOpacity: 0.5,
-        			strokeWidth: 1,
-        			fillColor: "orange",
-        			fillOpacity: 0.6
-        		})
-        	});
-    	}
-                
-        if (this.map) {
-            // create and add layer to map if not exist        	
-            if (addon.map.getLayersByName(id).length == 1) {
-                layer = this.map.getLayersByName(id)[0];
-            } else {            	
-            	// create layer options as style, project
-                var layerOptions = OpenLayers.Util.applyDefaults(
-                    this.layerOptions, {
-                        displayInLayerSwitcher: false,
-                        projection: addon.map.getProjectionObject(),
-                        styleMap: style
-                    }
-                );
-                
-                layer = new OpenLayers.Layer.Vector(id, layerOptions);                
-                this.map.addLayer(layer);
-            }
-        }
-        return layer;
-    },
-    
-    /**
-     * Method: resultLayer
-     * create layer to contain route
-     *     
-     */
-    resultLayer: function() {
-        var resultLayer;
-
-        var map = this.map;
-        
-        var from = new OpenLayers.Projection("EPSG:4326");
-        
-        var style = new OpenLayers.StyleMap(this.options.RESULT_STYLE);
-
-        if (this.map) {
-            // create and add layer to map if not exist
-            if (this.map.getLayersByName("traveler_result").length == 1) {
-                resultLayer = this.map.getLayersByName("traveler_result")[0];
-            } else {
-                var layerOptions = OpenLayers.Util.applyDefaults(
-                    this.layerOptions, {
-                        displayInLayerSwitcher: false,
-                        projection: map.getProjectionObject(),
-                        styleMap: style,
-                        preFeatureInsert: function(feature) {
-                            feature.geometry.transform(from, map.getProjectionObject());
-                        }
-                    }
-                );
-                resultLayer = new OpenLayers.Layer.Vector("traveler_result", layerOptions);
-                map.addLayer(resultLayer);
-
-            }
-        }
-        return resultLayer;
-    },
-    
+    routeField: null,  
     
     /**
      * Method: removeFeature
@@ -181,11 +97,9 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 		                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
 		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,isoLayer, addon.options.BAN_URL);
 		                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon.map, isoLayer, banCb, isoControl);
-		                	 var isoFset = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);
-
-		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFset, isoExclud);
-		                	 isoWin.show();
-		                	 
+		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);		                	 
+		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud);		                	 	                			                	 
+		                	 isoWin.show();		                	 
 	                	 } else {
 	                		 Ext.getCmp("iso_win").destroy();
 	                	 }	                	 	                	 
