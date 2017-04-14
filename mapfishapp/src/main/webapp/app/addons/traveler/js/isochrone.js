@@ -103,16 +103,34 @@ GEOR.Addons.Traveler.isochrone.mode = function(){
 			xtype : "button",
 			tooltip : OpenLayers.i18n("pedestrian"),
 			id:"iso_pedestrian",
+			cls:"mode-button",
+			iconCls:"pedestrian",
 			enableToggle : true,
+			allowDepress: false,
 			pressed: false,
-			toggleGroup: "iso_mode"
+			toggleGroup: "iso_mode",
+			listeners: {
+				toggle: function(b){
+					if(b.pressed){b.setIconClass("pedestrian-pressed");}
+					else {b.setIconClass("pedestrian");}
+				}
+			}
 		},{
 			xtype : "button",
 			tooltip : OpenLayers.i18n("vehicle"),
 			id: "iso_vehicle",
+			iconCls: "vehicle",
+			cls:"mode-button",
+			allowDepress: false,
 			enableToggle : true,
 			pressed:true,
-			toggleGroup: "iso_mode"
+			toggleGroup: "iso_mode",
+			listeners: {
+				toggle: function(b){
+					if(b.pressed){b.setIconClass("vehicle-pressed");}
+					else {b.setIconClass("vehicle");}
+				}
+			}		
 		}]
 	});		
 };
@@ -257,7 +275,7 @@ GEOR.Addons.Traveler.isochrone.refentialBox = function(banField, comboRef){
     return new Ext.form.Checkbox({
         hideLabel: true,
         hidden: false,
-        boxLabel: tr("Rerential"),
+        boxLabel: tr("traveler.isochrone.rerential.boxlabel"),
         listeners: {
             "check": function() {
                 if (this.checked) {
@@ -280,7 +298,7 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(){
     return new Ext.form.Checkbox({
         hideLabel: true,
         hidden: false,
-        boxLabel: tr("Geometry"),
+        boxLabel: tr("traveler.isochrone.searchgeometry"),
         listeners: {
             "check": function() {
                 // get geometry from brower
@@ -289,11 +307,16 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(){
     });
 };
 
+/**
+ * Création du filedset contenant la combo box ban
+ */
 GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban){
 	var items = [];
 	
 	var fields = new Ext.form.FieldSet({
         autoWidht: true,
+        hideLabel:true,
+        cls: "fsStep",
         id: "iso_input",
         items:[ban]
     });	
@@ -320,6 +343,7 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban){
     
     if(items.length > 0){
     	var cpField = new Ext.form.CompositeField({
+    		hideLabel:true,
     		id:"iso_cpfCheck",
     		items: items
     	});
@@ -329,17 +353,86 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban){
     return fields;
 };
 
+
+/**
+ * Insérer un compositefield d'affichage du résultat dans la zone Résultat
+ * On insére dans une table : 
+ * 		- clé : identifiant de la ligne
+ * 		- valeur : le numéro de la ligne
+ * 
+ *  Permet de retrouver le 
+ */
+
+GEOR.Addons.Traveler.isochrone.insertResult = function(table, isochrones){
+	if(Ext.getCmp("iso_result")){
+		var zone = Ext.getCmp("iso_result");
+		var len = zone.items.length - 1;		
+		var cpf = new Ext.form.CompositeField({
+			items:[{
+				xtype: "textfield",
+				value: "Recherche "+ len				
+			},{
+				xtype:"button",
+				text: "Del"
+			},{
+				xtype:"button",
+				text:"Sav"
+			}]
+		});			
+		zone.insert(len, cpf);
+		
+		resObj[cpf.id] = len;
+	}
+};
+
+GEOR.Addons.Traveler.isochrone.createIsochrone = function(service,){
+	var settings = {};
+	var check = [];
+	// get exclusions checked
+	var checkItems  = Ext.getCmp("iso_exclusions") ? Ext.getCmp("iso_exclusions").items.items : false;	
+    if (checkItems && checkItems.length > 0) {
+        checkItems.forEach(function(el) {
+            if (Ext.getCmp(el.id) && Ext.getCmp(el.id).checked) {
+            	check.push(Ext.getCmp(el.id).value);
+            };
+        });
+        settings.exclusions = check;
+    }
+    
+    //get graphName 
+    if(Ext.getCmp("iso_pedestrian") && Ext.getCmp("iso_pedestrian").pressed){
+    	settings.graphName = "Pieton";
+	} else {
+		settings.graphName = "Voiture";
+	}    
+	
+	// get geom
+    
+	// get options
+	
+	// fire calcul
+	
+	return new OpenLayers.Request.GET({
+		url: service,
+		params: settings,
+		callback: function(request){
+			
+		}
+	});
+}; 
+
+
 /**
  *  Création de la fenêtre de l'outil
  */
 GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion){
 	var tr = OpenLayers.i18n;	
     
-	return new Ext.Window({
+	var win =  new Ext.Window({
 		id: "iso_win",
 		title: tr("isochrone.window.title"),
 		constrainHeader: true,
-		//autoHeight: true,
+		autoHeight: true,
 		width: 290,
 		autoScroll: true,
 		closable: true,
@@ -354,10 +447,40 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion){
                 xtype: "fieldset",
                 collapsible: true,
                 collapsed: true,
+                cls: "fsStep",
                 id: "iso_options",
                 title: tr("traveler.options.title"),
-                items: [exclusion]
-			}]
+                items: [exclusion],
+                listeners:{
+                	"collapse": function(){ win.syncShadow();},
+                	"expand": function(){ win.syncShadow();}
+                }
+			},{
+				xtype:"spacer",
+				height:"5"
+			},{
+				xtype: "fieldset",
+			    collapsible: true,
+			    hidden:false,
+			    collapsed: true,
+			    cls: "fsStep",
+			    id: "iso_result",
+			    title: tr("traveler.isochron.result.title"),
+			    items:[{
+			    	xtype:"textfield"
+			    }],
+			    listeners:{
+                	"collapse": function(){ win.syncShadow();},
+                	"expand": function(){ win.syncShadow();}
+                }
+		    }]
+		}],
+		buttons:[{
+			text: "Calculer"
+		},{
+			text: "Enregistrer"
 		}]
 	});
+	
+	return win;
 };

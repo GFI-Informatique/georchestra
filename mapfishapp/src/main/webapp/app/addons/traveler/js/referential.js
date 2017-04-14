@@ -101,8 +101,6 @@ GEOR.Addons.Traveler.referential.create = function(addon, fieldSet, inputId) {
             hidden: true,
             store: store,
             displayField: 'title',
-            width: 160,
-            listWidth: 160,
             triggerAction: "all",
             editable: false,
             listeners: {

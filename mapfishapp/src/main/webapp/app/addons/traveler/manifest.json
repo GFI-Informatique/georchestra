@@ -44,7 +44,13 @@
         	"traveler.isochrone.boxlabel.tunels": "Tunnels",
         	"traveler.isochrone.boxlabel.bridge": "Ponts",
         	"traveler.isochrone.boxtooltip.toll":"Péages",
-        	        	
+        	"traveler.isochron.result.title": "Résultat",
+        	"traveler.referential.combolayer.tooltip": "Saisir une adresse à localiser",
+        	"traveler.referential.combolayer.emptytext": "Choisir une couche...",
+        	"traveler.isochrone.searchgeometry": "Géométrie",
+        	"traveler.referential.nogeom": "Aucune géométrie dans cette couche",
+        	"traveler.referential.comboref.loading": "Chargement",
+        	"traveler.isochrone.rerential.boxlabel": "Référentiel",        	        	
         	"route": "itinéraires",
         	"route.window.title": "Calcul d'itinéraires"
         } 

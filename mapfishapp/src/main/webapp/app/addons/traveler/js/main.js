@@ -17,7 +17,7 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      * Method: featureIsoArray
      * create object containing start point
      */
-    featureIsoArray: new Object(),
+    isoArray: new Object(),
        
     /**
      * Method: routeField
@@ -92,12 +92,12 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                	 if(!Ext.getCmp("iso_win")){
 	                		 var isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
 		                	 var isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
-		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, isoLayer, addon.featureIsoArray, addon.isoField);
 		                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
 		                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
 		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,isoLayer, addon.options.BAN_URL);
+		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, isoLayer, addon.featureIsoArray, banCb.id);
 		                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon.map, isoLayer, banCb, isoControl);
-		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);		                	 
+		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);		        
 		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud);		                	 	                			                	 
 		                	 isoWin.show();		                	 
 	                	 } else {

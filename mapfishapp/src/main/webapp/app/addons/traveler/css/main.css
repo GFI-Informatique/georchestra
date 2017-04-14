@@ -1,68 +1,63 @@
-.addon-icon {
-    background-image: url(../img/icon.png) !important;
-}
+/* MANAGE STYLE FOR METHODE BUTTONS */
 
-.walkBtn {
+.pedestrian {
 	background-image: url(../img/walk-btn.png);
 	width: 24px !important;
 	height: 24px !important;
+	background-color: white !important ;
 }
 
-.carBtn {
+.vehicle {
 	background-image: url(../img/car-btn.png);
-	height: 24px !important;
 	width: 24px !important;
-}
-
-
-.walkStyle .x-btn-mr, .walkStyle .x-btn-ml, .walkStyle .x-btn-tr, .walkStyle .x-btn-tl, .walkStyle .x-btn-bc, .walkStyle .x-btn-tc,.walkStyle .x-btn-bl,.walkStyle .x-btn-br,
-.carStyle .x-btn-mr, .carStyle .x-btn-ml, .carStyle .x-btn-tr, .carStyle .x-btn-tl, .carStyle .x-btn-bc, .carStyle .x-btn-tc,.carStyle .x-btn-bl,.carStyle .x-btn-br,
-.actionBtn .x-btn-mr, .actionBtn .x-btn-ml, .actionBtn .x-btn-tr, .actionBtn .x-btn-tl, .actionBtn .x-btn-bc, .actionBtn .x-btn-tc,.actionBtn .x-btn-bl,.actionBtn .x-btn-br{
-	border:none;
-}
-
-.carStyle, .walkStyle {
-	padding-top: 3px;
-	background-color: white;
-}
-
-
-.car-over {
-	background-image: url(../img/car-hover-bis.png);	
 	height: 24px !important;
-	width: 24px !important;
 	background-color: white !important ;
 }
 
-.car-pressed {
-	background-image: url(../img/car-selected.png);	
-	height: 24px !important;
-	width: 24px !important;
-	background-color: white !important ;
-}
-
-.walk-over {
+.pedestrian:hover {
 	background-image: url(../img/walk-hover.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
 }
 
-.walk-pressed {
+.vehicle:hover {
+	background-image: url(../img/car-hover.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
+}
+
+.pedestrian-pressed {
 	background-image: url(../img/walk-selected.png);	
 	height: 24px !important;
 	width: 24px !important;
 	background-color: white !important ;
 }
 
-#carBtn:hover, #walkBtn:hover, #carBtn:active, .actionBtn:hover, .actionBtn:hover, .actionBtn:hover .x-btn-text,
-#walkBtn:active, .carStyle .x-btn-pressed {
-	background-color: rgba(255,255,255,0) !important;
+.vehicle-pressed {
+	background-image: url(../img/car-selected.png);	
+	height: 24px !important;
+	width: 24px !important;
+	background-color: white !important ;
+}
+
+.mode-button .x-btn-mr, .mode-button .x-btn-ml, .mode-button .x-btn-tr, .mode-button .x-btn-tl, .mode-button .x-btn-bc, .mode-button .x-btn-tc,.mode-button .x-btn-bl,.mode-button .x-btn-br {
+	border: none;
+}
+.mode-button, .mode-button .x-btn-pressed{
+	padding-top: 3px;
+	background-color: white !important;
+}
+
+.actionBtn .x-btn-mr, .actionBtn .x-btn-ml, .actionBtn .x-btn-tr, .actionBtn .x-btn-tl, .actionBtn .x-btn-bc, .actionBtn .x-btn-tc,.actionBtn .x-btn-bl,.actionBtn .x-btn-br{
+	border:none;
 }
 
 
-.carStyle .x-btn-pressed{
-	background-color: white !important;
+.actionBtn:hover, .actionBtn:hover, .actionBtn:hover .x-btn-text
+{
+	background-color: rgba(255,255,255,0) !important;
 }
 
 
