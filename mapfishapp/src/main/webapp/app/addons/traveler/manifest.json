@@ -10,13 +10,6 @@
         "css/main.css"
     ],
     "default_options": {
-    	"RESULT_STYLE": {
-            "strokeColor": "#00b3fd",
-            "strokeOpacity": 1,
-            "strokeWidth": 5,
-            "strokeLinecap": "round",
-            "strokeDashstyle": "solid"
-        },
         "POINT_STYLE": {
             "pointRadius": 5,
             "fillColor":"white",
@@ -28,9 +21,15 @@
         "NB_RESULT":5,
         "DEACCENTUATE_REFERENTIALS_QUERYSTRING": true,
         "BAN_URL":"https://api-adresse.data.gouv.fr/search/?",
-        "ROUTE_SERVICE":"http://wxs.ign.fr/r4g8nxstfipd0gram0iqgbs4/itineraire/rest/route.json",
-        "ACCESS_MSG": "Vous devez être connecté pour utiliser ce module. Merci de prendre contact avec un administrateur."
-        
+        "ISOCHRONE_SERVICE":"http://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/isochrone/isochrone.json",
+        "ROUTE_SERVICE":"http://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/itineraire/rest/route.json",
+        "ACCESS_MSG": "Vous devez être connecté pour utiliser ce module. Merci de prendre contact avec un administrateur.",
+        "HOLES": true,
+        "SMOOTHING" :true,
+        "ISO_SRS" : "epsg:4326",
+        "TIME" : [10,20,30],
+        "ISOCHRONES_COLOR": ["rgba(23,178,23,0.6)","rgba(255,231,0,0.5)","rgba(255,0,0,0.5)"],
+        "ISOCHRONE_STROKE": ["rgba(255,255,255,0.5)"]        
     },
     "i18n": {
         "en": {},        
@@ -52,7 +51,9 @@
         	"traveler.referential.comboref.loading": "Chargement",
         	"traveler.isochrone.rerential.boxlabel": "Référentiel",        	        	
         	"route": "itinéraires",
-        	"route.window.title": "Calcul d'itinéraires"
+        	"route.window.title": "Calcul d'itinéraires",
+        	"isochrone.title.failrequest": "Erreur",
+        	"isochrone.message.failrequest": "Le point départ et le temps doivent être remplis !"
         } 
     }
 }

@@ -17,8 +17,17 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      * Method: featureIsoArray
      * create object containing start point
      */
-    isoArray: new Object(),
+    isoStart: new Object(),
        
+    /**
+     * Method: isoResult
+     * create object to link result to line
+     */
+    isoResult: new Object(),
+    
+    isoLayer : null,
+    isoResLayer : null,
+           
     /**
      * Method: routeField
      * get last field use to localize last way point
@@ -90,15 +99,18 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                 iconCls: "addon-icon",
 	                 handler: function(box){
 	                	 if(!Ext.getCmp("iso_win")){
+	                		 // create items
 	                		 var isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
-		                	 var isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
+		                	 addon.isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
 		                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
 		                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
-		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,isoLayer, addon.options.BAN_URL);
-		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, isoLayer, addon.featureIsoArray, banCb.id);
+		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,isoLayer, addon.options.BAN_URL, addon.isoStart);
+		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, isoLayer, addon.isoStart, banCb.id);
 		                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon.map, isoLayer, banCb, isoControl);
-		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);		        
-		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud);		                	 	                			                	 
+		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);
+		                	 var isoTime = GEOR.Addons.Traveler.isochrone.time(addon);
+		                	 // create window to finalize isochrone init
+		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud, addon, isoTime);		                	 	                			                	 
 		                	 isoWin.show();		                	 
 	                	 } else {
 	                		 Ext.getCmp("iso_win").destroy();

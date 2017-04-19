@@ -50,6 +50,12 @@
 	background-color: white !important;
 }
 
+/* STYLE FOR TIME TEXTFIELD */
+.time-field {
+	border:none;
+}
+
+
 .actionBtn .x-btn-mr, .actionBtn .x-btn-ml, .actionBtn .x-btn-tr, .actionBtn .x-btn-tl, .actionBtn .x-btn-bc, .actionBtn .x-btn-tc,.actionBtn .x-btn-bl,.actionBtn .x-btn-br{
 	border:none;
 }
