@@ -467,9 +467,7 @@ GEOR.Addons.Traveler.isochrone.insertResult = function(table, isochrones){
 GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
 	
 	var tr = OpenLayers.i18n;
-	
-	addon.isoResLayer.removeAllFeatures();
-	
+		
 	var config = addon.options;
 	var settings = {};	
 	var check = [];
@@ -554,32 +552,82 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
         						isochrones.forEach(function(feature){        						
         							var measure = feature.geometry.getArea();
         							if(measure == areaMax){  
-        								setPos(feature, 0,2);
-        								var extent = feature;
+        								setPos(feature, 0,2);        								
     								}
         							else if(measure ==  areaMin){ setPos(feature, 2,0); }
         							else{ setPos(feature, 1,1); }
         						});        		
         						// add to layer 
-    							order.forEach(function(el){
+    							order.forEach(function(el, index){
     								if(el && el.geometry){
-    									addon.isoResLayer.addFeatures(el);        									
+    									addon.isoResLayer.addFeatures(el);
+    									// to zoom on largest extent
+    									if(index == 0){
+    										// need to get great bounds in map projection, after feature is added 
+    										var bounds = addon.isoResLayer.getFeatureById(el.id).geometry.getBounds();
+    										addon.map.zoomToExtent(bounds);    										
+    									}
     								}
     							});
     							// insert research in result fieldset
     							var resultZone  = Ext.getCmp("iso_result") ? Ext.getCmp("iso_result") : false;
     							if(resultZone){
-    								var pos = resultZone.length > 0 ? resultZone.lentgh -1 : 0 ;
-    								addon.isoResult[pos] = isochrones;
-    								// insert new result in window
-    								resultZone.insert(pos, new Ext.form.CompositeField({
+    								var pos = resultZone.length > 0 ? resultZone.lentgh : 0 ;    								
+    								var resCpf = new Ext.form.CompositeField({
     									hideLabel: true,
     									items:[{
+    										xtype:"checkbox",
+    										hideLabel: true,
+    										checked: true,
+    										listeners: {
+    											"check": function(el, checked){
+    												var array = addon.isoResult[resCpf.id];
+    												// hide or show feature by style opacity
+    												function changeOpacity (array, val){														
+														array.forEach(function(el){
+															el.style.fillOpacity = val;
+															el.style.strokeOpacity = val;
+															el.layer.redraw();
+    													});      													
+    												}    												
+    												if(checked){				
+    													changeOpacity(array,1)
+    												} else {
+    													changeOpacity(array,0)
+    												}
+    											}
+    										}
+    									},{
     										xtype:"textfield",
-    										value: tr("isochrone.resulttextfield.value") + (pos + 1)
-    									}]
-    								}));
-    								console.log(addon.isoResult);
+    										width: 80,
+    										cls: "time-field",
+    										value: tr("isochrone.resulttextfield.value") + (pos)
+    									},{
+    										xtype: "button",
+    										text : "del",
+    										handler:function(b){
+    											// thanks to parent id, we find geom to be erase  in isoResult object 
+    											var parent = b.findParentByType("compositefield");
+    											var isoFeatures = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false; 
+    											if(isoFeatures){
+    												addon.isoResLayer.removeFeatures(isoFeatures);
+    											}
+    											// delete complete line in window
+    											parent.destroy();    											
+    										}
+										},{
+											xtype: "button",
+											text : "save"
+										}],
+    									
+    								});
+    								// use to delete geometry according to compositefield in isoResult object
+    								// exemple : isoResult = {"id123":[feature1, feature2]}
+    								addon.isoResult[resCpf.id] = isochrones;    								
+    								// insert new result in window
+    								resultZone.insert(pos, resCpf);
+    								Ext.getCmp("iso_win").doLayout();
+    								    								
     							}        						
         					}        					
         				}
@@ -661,7 +709,6 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 			id: "iso_panel",
 			items: [mode,fSet,{            
                 xtype: "fieldset",
-                //hideLabel:true,
                 fieldLabel: "isochrones",
                 cls: "fsStep",
                 id: "iso_timeFset",
@@ -691,7 +738,8 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 			    title: tr("traveler.isochron.result.title"),
 			    listeners:{
                 	"collapse": function(){ win.syncShadow();},
-                	"expand": function(){ win.syncShadow();}
+                	"expand": function(){ win.syncShadow();},
+                	"remove": function(){win.syncShadow;}
                 }
 		    }]
 		}],
