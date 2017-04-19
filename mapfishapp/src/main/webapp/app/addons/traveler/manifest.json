@@ -52,8 +52,9 @@
         	"traveler.isochrone.rerential.boxlabel": "Référentiel",        	        	
         	"route": "itinéraires",
         	"route.window.title": "Calcul d'itinéraires",
-        	"isochrone.title.failrequest": "Erreur",
-        	"isochrone.message.failrequest": "Le point départ et le temps doivent être remplis !"
+        	"isochrone.messagetitle.failrequest": "Erreur",
+        	"isochrone.messagetext.failrequest": "Le point de départ et le temps doivent être remplis !",
+        	"isochrone.resulttextfield.value": "Résultat "
         } 
     }
 }

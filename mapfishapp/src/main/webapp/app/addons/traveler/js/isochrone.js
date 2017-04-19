@@ -47,6 +47,16 @@ GEOR.Addons.Traveler.isochrone.resultLayer = function(map){
                     projection: map.getProjectionObject(),
                     preFeatureInsert: function(feature) {
                         feature.geometry.transform(from, map.getProjectionObject());
+                    },
+                    onFeatureInsert: function(){ // display start point layer to front
+                    	if(map.getLayersByName("iso_points").length > 0 && map.getLayersByName("iso_points")[0]){
+                    		var z = 0;
+                    		map.layers.forEach(function(el){
+                    			z = el.getZIndex() > z ? el.getZIndex() : z; 
+                    			
+                    		});
+                    		map.getLayersByName("iso_points")[0].setZIndex(z + 1);
+                    	}
                     }
                 }
             );            
@@ -456,6 +466,8 @@ GEOR.Addons.Traveler.isochrone.insertResult = function(table, isochrones){
 
 GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
 	
+	var tr = OpenLayers.i18n;
+	
 	addon.isoResLayer.removeAllFeatures();
 	
 	var config = addon.options;
@@ -508,8 +520,8 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
     	}); 	    	
     	
     	// fire request
-    	var area = [];
-    	var id = "";
+    	var area = [];    	
+    	var order = [];
     	times.forEach(function(el, index){
     		settings.time = el;
     		if(settings.time && settings.location){
@@ -529,10 +541,10 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
         					// compare area to display feature in good order
     						isochrones.push(feature);
         					area.push(feature.geometry.getArea());
-        					if(isochrones.length == times.length){        											
+        					if(isochrones.length == times.length){       
+        						// get area to compare
         						var areaMax = Math.max.apply(Math, area);
-        						var areaMin = Math.min.apply(Math, area);
-        						var order = [];
+        						var areaMin = Math.min.apply(Math, area);        						
         						// insert isochrone to array in order with good style
         						function setPos (feature,pos, color){    								
     								feature.style.fillColor = config.ISOCHRONES_COLOR[color];
@@ -547,22 +559,35 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
     								}
         							else if(measure ==  areaMin){ setPos(feature, 2,0); }
         							else{ setPos(feature, 1,1); }
-        						});        						
-        						// wait process finish totaly
-        						setTimeout(function(){
-        							order.forEach(function(el){
-        								if(el && el.geometry){
-        									addon.isoResLayer.addFeatures(el);
-        								}
-        							});
-        						}, 2000);        						
-        					}
+        						});        		
+        						// add to layer 
+    							order.forEach(function(el){
+    								if(el && el.geometry){
+    									addon.isoResLayer.addFeatures(el);        									
+    								}
+    							});
+    							// insert research in result fieldset
+    							var resultZone  = Ext.getCmp("iso_result") ? Ext.getCmp("iso_result") : false;
+    							if(resultZone){
+    								var pos = resultZone.length > 0 ? resultZone.lentgh -1 : 0 ;
+    								addon.isoResult[pos] = isochrones;
+    								// insert new result in window
+    								resultZone.insert(pos, new Ext.form.CompositeField({
+    									hideLabel: true,
+    									items:[{
+    										xtype:"textfield",
+    										value: tr("isochrone.resulttextfield.value") + (pos + 1)
+    									}]
+    								}));
+    								console.log(addon.isoResult);
+    							}        						
+        					}        					
         				}
         			}
         		});
         		        		
     		} else {
-    			Ext.Msg.alert(OpenLayers.i18n("isochrone.title.failrequest"), OpenLayers.i18n("isochrone.message.failrequest"));
+    			Ext.Msg.alert(tr("isochrone.messagetitle.failrequest"), tr("isochrone.messagetext.failrequest"));
     		}
     	});
     }
@@ -664,9 +689,6 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 			    cls: "fsStep",
 			    id: "iso_result",
 			    title: tr("traveler.isochron.result.title"),
-			    items:[{
-			    	xtype:"textfield"
-			    }],
 			    listeners:{
                 	"collapse": function(){ win.syncShadow();},
                 	"expand": function(){ win.syncShadow();}
