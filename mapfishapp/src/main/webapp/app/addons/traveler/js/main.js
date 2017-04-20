@@ -101,6 +101,7 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                	 if(!Ext.getCmp("iso_win")){
 	                		 // create items
 	                		 var isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
+	                		 addon.isoStart = isoLayer;
 		                	 addon.isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
 		                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
 		                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
@@ -113,7 +114,15 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud, addon, isoTime);		                	 	                			                	 
 		                	 isoWin.show();		                	 
 	                	 } else {
-	                		 Ext.getCmp("iso_win").destroy();
+	                		 if(Ext.getCmp("iso_win")){
+	                			 Ext.getCmp("iso_win").destroy();
+	                		 }	                		 
+	                		 if(addon.isoLayer){
+	                			 addon.isoLayer.removeAllFeatures();
+	                		 }
+	                		 if(addon.isoResLayer){
+	                			 addon.isoResLayer.removeAllFeatures();
+	                		 }
 	                	 }	                	 	                	 
 	                 }
 	             })

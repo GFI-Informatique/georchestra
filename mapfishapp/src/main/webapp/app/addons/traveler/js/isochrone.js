@@ -367,7 +367,7 @@ GEOR.Addons.Traveler.isochrone.refentialBox = function(banField, comboRef){
 /**
  * Check box pour récupérer la géométrie stockée sur le navigateur
  */
-GEOR.Addons.Traveler.isochrone.geometryBox = function(){
+GEOR.Addons.Traveler.isochrone.geometryBox = function(addon){
 	var tr = OpenLayers.i18n;
 	if(Ext.getCmp("iso_geom")){
 		Ext.getCmp("iso_geom").destroy();
@@ -379,7 +379,23 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(){
         boxLabel: tr("traveler.isochrone.searchgeometry"),
         listeners: {
             "check": function() {
-                // get geometry from brower
+            	var to  = new OpenLayers.Projection("epsg:4326");
+                // get geometry from localstorage with spherical mercator projection
+            	if(Ext.state.Manager.getProvider()){
+            		addon.isoLayer.removeAllFeatures();
+            		var geomStr = Ext.state.Manager.getProvider().decodeValue(Ext.state.Manager.getProvider().get("geometry"));
+            		var feature = (new OpenLayers.Format.WKT()).read(geomStr);
+            		// authorize only point geometry to create isochrone
+            		var countPoints = feature.geometry.components.length;
+            		var typeGeom = feature.geometry.CLASS_NAME;
+            		if(typeGeom.indexOf("Point") > -1 && countPoints <= addon.options.LIMIT_GEOM){           			
+            			addon.isoLayer.addFeatures(feature);
+            		} else {
+            			GEOR.util.infoDialog({
+                            msg: OpenLayers.i18n("Wrong geometry ! ");
+                        });
+            		}
+            	}           	            	
             }
         }
     });
@@ -416,7 +432,7 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban, layer){
     }
     
     // insert geometry check box
-    var geomBox = GEOR.Addons.Traveler.isochrone.geometryBox() ? GEOR.Addons.Traveler.isochrone.geometryBox() : false;  
+    var geomBox = GEOR.Addons.Traveler.isochrone.geometryBox() ? GEOR.Addons.Traveler.isochrone.geometryBox(addon) : false;  
     if(geomBox){
     	items.push(geomBox);
     }
@@ -436,33 +452,6 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban, layer){
     return fields;
 };
 
-/**
- * Insérer un compositefield d'affichage du résultat dans la zone Résultat
- * On insére dans une table : 
- * 		- table : object clé valeur
- * 		- isochrones : géométries crées
- * 
- */
-GEOR.Addons.Traveler.isochrone.insertResult = function(table, isochrones){
-	if(Ext.getCmp("iso_result")){
-		var zone = Ext.getCmp("iso_result");
-		var len = zone.items.length - 1;		
-		var cpf = new Ext.form.CompositeField({
-			items:[{
-				xtype: "textfield",
-				value: "Recherche "+ len				
-			},{
-				xtype:"button",
-				text: "Del"
-			},{
-				xtype:"button",
-				text:"Sav"
-			}]
-		});			
-		zone.insert(len, cpf);		
-		table[cpf.id] = len;
-	}
-};
 
 GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
 	
@@ -608,12 +597,13 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
     										handler:function(b){
     											// thanks to parent id, we find geom to be erase  in isoResult object 
     											var parent = b.findParentByType("compositefield");
-    											var isoFeatures = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false; 
+    											var isoFeatures = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false;
+    											// delete complete line in window, key in feature object and layer features 
     											if(isoFeatures){
     												addon.isoResLayer.removeFeatures(isoFeatures);
     											}
-    											// delete complete line in window
-    											parent.destroy();    											
+    											parent.destroy();
+    											delete addon.isoResult[parent.id];
     										}
 										},{
 											xtype: "button",
@@ -649,7 +639,8 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
 GEOR.Addons.Traveler.isochrone.storeGeometry = function(features){	
     // compute aggregation of geometries
 	if(features || features.length > 0){
-        components = [], type;
+        var components = []; 
+        var type;
         Ext.each(features, function(feature) {
             if (/OpenLayers\.Geometry\.Multi.*/.test(feature.geometry.CLASS_NAME)) {
                 // multi-geometry
@@ -704,6 +695,16 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 		resizable: true,
 		collapsible: true,
 		buttonAlign: "center",
+		listeners:{
+			"hide": function(){
+	       		 if(addon.isoLayer){
+	    			 addon.isoLayer.removeAllFeatures();
+	    		 }
+	    		 if(addon.isoResLayer){
+	    			 addon.isoResLayer.removeAllFeatures();
+	    		 }
+			}
+		},
 		items:[{
 			xtype: "panel",
 			id: "iso_panel",
@@ -713,6 +714,9 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
                 cls: "fsStep",
                 id: "iso_timeFset",
                 items: [timeFields]
+			},{
+				xtype:"spacer",
+				height:"3"
 			},{            
                 xtype: "fieldset",
                 collapsible: true,
@@ -727,7 +731,7 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
                 }
 			},{
 				xtype:"spacer",
-				height:"5"
+				height:"3"
 			},{
 				xtype: "fieldset",
 			    collapsible: true,
@@ -739,7 +743,14 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 			    listeners:{
                 	"collapse": function(){ win.syncShadow();},
                 	"expand": function(){ win.syncShadow();},
-                	"remove": function(){win.syncShadow;}
+                	"remove": function(f){
+                		f.collapse();
+                		win.syncShadow();
+            		},
+                	"add": function(f){
+                		f.expand(); 
+                		win.syncShadow();
+            		}
                 }
 		    }]
 		}],
@@ -754,8 +765,23 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 			text: "Enregistrer",
 			listeners:{
 				click: function(b){
-					// get isochrones geom and store 
-					GEOR.Addons.Traveler.isochrone.storeGeometry(features);
+					// get isochrones geom and store
+					var largestFeatures = [];
+					var o = addon.isoResult;
+					for (var key in o) {
+					    if (o.hasOwnProperty(key)) {
+					    	var items = o[key];
+							var largest = items[0];
+							items.forEach(function(el){
+								if(largest && largest.geometry && el.geometry.getArea() > largest.geometry.getArea()){
+									largest = el;
+								}
+							});
+							largestFeatures.push(largest);
+					    }
+					};
+					console.log(largestFeatures);
+					GEOR.Addons.Traveler.isochrone.storeGeometry(largestFeatures);
 				}
 			}
 		}]
