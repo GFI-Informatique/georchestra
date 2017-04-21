@@ -97,33 +97,30 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                 map: this.map,
 	                 group: "_travel",
 	                 iconCls: "addon-icon",
-	                 handler: function(box){
+	                 id:"iso_tool",
+	                 listeners:{
+	                	"click": function(box){
 	                	 if(!Ext.getCmp("iso_win")){
 	                		 // create items
-	                		 var isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
-	                		 addon.isoStart = isoLayer;
+	                		 addon.isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
 		                	 addon.isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
 		                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
 		                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
-		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,isoLayer, addon.options.BAN_URL, addon.isoStart);
-		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, isoLayer, addon.isoStart, banCb.id);
-		                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon.map, isoLayer, banCb, isoControl);
+		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,addon.isoLayer, addon.options.BAN_URL, addon.isoStart);
+		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, addon.isoLayer, addon.isoStart, banCb.id);
+		                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon.map, addon.isoLayer, banCb, isoControl);
 		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);
 		                	 var isoTime = GEOR.Addons.Traveler.isochrone.time(addon);
 		                	 // create window to finalize isochrone init
 		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud, addon, isoTime);		                	 	                			                	 
 		                	 isoWin.show();		                	 
 	                	 } else {
-	                		 if(Ext.getCmp("iso_win")){
-	                			 Ext.getCmp("iso_win").destroy();
-	                		 }	                		 
-	                		 if(addon.isoLayer){
-	                			 addon.isoLayer.removeAllFeatures();
-	                		 }
-	                		 if(addon.isoResLayer){
-	                			 addon.isoResLayer.removeAllFeatures();
+	                		 var window = Ext.getCmp("iso_win");
+	                		 if(!window.isVisible()){
+	                			 window.show();
 	                		 }
 	                	 }	                	 	                	 
+	                 } 
 	                 }
 	             })
 	         ), new Ext.menu.CheckItem(

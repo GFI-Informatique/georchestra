@@ -83,23 +83,19 @@ GEOR.Addons.Traveler.isochrone.drawControl = function(map, layer, obj, fId){
 	        );
 	        control = new OpenLayers.Control.DrawFeature(layer, OpenLayers.Handler.Point, controlOptions);
 	        control.events.on({
-	            "featureadded": function() {
+	            "featureadded": function(event) {
 	                control.deactivate();
-	                if(layer.features.length > 0){
-	                	var indx = layer.features.length - 1;	                
-		                var feature = layer.features[indx];	                
-		                var pId = feature.id;
-		                // limit decimals
-		                var x = Math.round(feature.geometry.x * 10000) / 10000;
-		                var y = Math.round(feature.geometry.y * 10000) / 10000;
-		                if (obj && feature.geometry) {
-		                	// transform geom to 4326 and set combo value in 3857
-		                	var locGeom  =  new OpenLayers.Geometry.Point(feature.geometry.x, feature.geometry.y).transform(map.getProjection(),epsg4326);
-		                    obj["location"] = locGeom.x+","+locGeom.y;
-		                    // display text field
-		                    Ext.getCmp(fId).setValue(x + "/" + y);
-		                }
-	                }	                
+	                var feature = event.feature;
+	                // limit decimals
+	                var x = Math.round(feature.geometry.x * 10000) / 10000;
+	                var y = Math.round(feature.geometry.y * 10000) / 10000;
+	                if (obj && feature.geometry) {
+	                	// transform geom to 4326 and set combo value in 3857
+	                	var locGeom  =  new OpenLayers.Geometry.Point(feature.geometry.x, feature.geometry.y).transform(map.getProjection(),epsg4326);
+	                    obj["location"] = [locGeom.x+","+locGeom.y];
+	                    // display text field
+	                    Ext.getCmp(fId).setValue(x + "/" + y);
+	                }
 	            },
 	            scope: this
 	        });	
@@ -305,7 +301,7 @@ GEOR.Addons.Traveler.isochrone.ban = function(map,layer, service, startPoints){
                     layer.addFeatures(feature);
                     
                     if(startPoints){
-                    	startPoints["location"] = geom.x +","+ geom.y;
+                    	startPoints["location"] = [geom.x +","+ geom.y];
                     }
                 }
             },
@@ -378,23 +374,35 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon){
         hidden: false,
         boxLabel: tr("traveler.isochrone.searchgeometry"),
         listeners: {
-            "check": function() {
-            	var to  = new OpenLayers.Projection("epsg:4326");
-                // get geometry from localstorage with spherical mercator projection
-            	if(Ext.state.Manager.getProvider()){
+            "check": function(el,checked) {
+            	if(checked){
+                	var to  = new OpenLayers.Projection("epsg:4326");
+                    // get geometry from localstorage with spherical mercator projection
+                	if(Ext.state.Manager.getProvider()){
+                		addon.isoLayer.removeAllFeatures();
+                		var geomStr = Ext.state.Manager.getProvider().decodeValue(Ext.state.Manager.getProvider().get("geometry"));
+                		var feature = (new OpenLayers.Format.WKT()).read(geomStr);
+                		// authorize only point geometry to create isochrone
+                		var countPoints = feature.geometry.components.length;
+                		var typeGeom = feature.geometry.CLASS_NAME;
+                		if(typeGeom.indexOf("Point") > -1 && countPoints <= addon.options.LIMIT_GEOM){           			
+                			addon.isoLayer.addFeatures(feature);
+                			var coord = [];
+                			feature.geometry.components.forEach(function(el){
+                				var trans  =  new OpenLayers.Geometry.Point(el.x, el.y).transform(addon.map.getProjection(),to);
+                				coord.push(trans)
+                			});
+                			//var locGeom  =  feature.geometry.transform(addon.map.getProjection(), to);
+                			console.log(coord);
+                			addon.isoStart["location"] = coord; // array
+                		} else {
+                			GEOR.util.infoDialog({
+                                msg: OpenLayers.i18n("Wrong geometry ! ")
+                            });
+                		}
+                	}
+            	} else {
             		addon.isoLayer.removeAllFeatures();
-            		var geomStr = Ext.state.Manager.getProvider().decodeValue(Ext.state.Manager.getProvider().get("geometry"));
-            		var feature = (new OpenLayers.Format.WKT()).read(geomStr);
-            		// authorize only point geometry to create isochrone
-            		var countPoints = feature.geometry.components.length;
-            		var typeGeom = feature.geometry.CLASS_NAME;
-            		if(typeGeom.indexOf("Point") > -1 && countPoints <= addon.options.LIMIT_GEOM){           			
-            			addon.isoLayer.addFeatures(feature);
-            		} else {
-            			GEOR.util.infoDialog({
-                            msg: OpenLayers.i18n("Wrong geometry ! ");
-                        });
-            		}
             	}           	            	
             }
         }
@@ -486,14 +494,11 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
 	} else {
 		settings.graphName = "Voiture";
 	}    
-    if(Ext.getCmp("iso_geom").checked){ 	// get geom from browser if checked
-    	
-    } else {
-    	if(obj){ // get geom from ban or referential tools
-    		settings.location = obj["location"];
-    	}
-    }    
-    var isochrones = [];
+    
+	if(obj){ // get geom from ban or referential tools
+		var startGeom = obj["location"];
+	}
+
     var times = [];
     
     if(Ext.getCmp("iso_time")){    	
@@ -506,128 +511,136 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon){
     		}
     	}); 	    	
     	
-    	// fire request
-    	var area = [];    	
-    	var order = [];
-    	times.forEach(function(el, index){
-    		settings.time = el;
-    		if(settings.time && settings.location){
-        		OpenLayers.Request.GET({
-        			url: service,
-        			params: settings,
-        			callback: function(request){
-        				if(request.responseText){
-        					// get geom from JSON decode
-        					var decode = JSON.parse(request.responseText);
-        					var geom = decode.wktGeometry;
-        					var wkt = new OpenLayers.Format.WKT();
-        					var feature = wkt.read(geom);       
-        					// set style
-        					feature.style = new OpenLayers.Style();
-    						feature.style.strokeColor = config.ISOCHRONE_STROKE ? config.ISOCHRONE_STROKE : "rgba(255,255,255,0.4)";       						        					
-        					// compare area to display feature in good order
-    						isochrones.push(feature);
-        					area.push(feature.geometry.getArea());
-        					if(isochrones.length == times.length){       
-        						// get area to compare
-        						var areaMax = Math.max.apply(Math, area);
-        						var areaMin = Math.min.apply(Math, area);        						
-        						// insert isochrone to array in order with good style
-        						function setPos (feature,pos, color){    								
-    								feature.style.fillColor = config.ISOCHRONES_COLOR[color];
-    								feature.style.graphicZIndex = pos;
-    								order[pos]=feature;
-        						}        			        						
-        						isochrones.forEach(function(feature){        						
-        							var measure = feature.geometry.getArea();
-        							if(measure == areaMax){  
-        								setPos(feature, 0,2);        								
-    								}
-        							else if(measure ==  areaMin){ setPos(feature, 2,0); }
-        							else{ setPos(feature, 1,1); }
-        						});        		
-        						// add to layer 
-    							order.forEach(function(el, index){
-    								if(el && el.geometry){
-    									addon.isoResLayer.addFeatures(el);
-    									// to zoom on largest extent
-    									if(index == 0){
-    										// need to get great bounds in map projection, after feature is added 
-    										var bounds = addon.isoResLayer.getFeatureById(el.id).geometry.getBounds();
-    										addon.map.zoomToExtent(bounds);    										
-    									}
-    								}
-    							});
-    							// insert research in result fieldset
-    							var resultZone  = Ext.getCmp("iso_result") ? Ext.getCmp("iso_result") : false;
-    							if(resultZone){
-    								var pos = resultZone.length > 0 ? resultZone.lentgh : 0 ;    								
-    								var resCpf = new Ext.form.CompositeField({
-    									hideLabel: true,
-    									items:[{
-    										xtype:"checkbox",
-    										hideLabel: true,
-    										checked: true,
-    										listeners: {
-    											"check": function(el, checked){
-    												var array = addon.isoResult[resCpf.id];
-    												// hide or show feature by style opacity
-    												function changeOpacity (array, val){														
-														array.forEach(function(el){
-															el.style.fillOpacity = val;
-															el.style.strokeOpacity = val;
-															el.layer.redraw();
-    													});      													
-    												}    												
-    												if(checked){				
-    													changeOpacity(array,1)
-    												} else {
-    													changeOpacity(array,0)
-    												}
-    											}
-    										}
-    									},{
-    										xtype:"textfield",
-    										width: 80,
-    										cls: "time-field",
-    										value: tr("isochrone.resulttextfield.value") + (pos)
-    									},{
-    										xtype: "button",
-    										text : "del",
-    										handler:function(b){
-    											// thanks to parent id, we find geom to be erase  in isoResult object 
-    											var parent = b.findParentByType("compositefield");
-    											var isoFeatures = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false;
-    											// delete complete line in window, key in feature object and layer features 
-    											if(isoFeatures){
-    												addon.isoResLayer.removeFeatures(isoFeatures);
-    											}
-    											parent.destroy();
-    											delete addon.isoResult[parent.id];
-    										}
-										},{
-											xtype: "button",
-											text : "save"
-										}],
-    									
-    								});
-    								// use to delete geometry according to compositefield in isoResult object
-    								// exemple : isoResult = {"id123":[feature1, feature2]}
-    								addon.isoResult[resCpf.id] = isochrones;    								
-    								// insert new result in window
-    								resultZone.insert(pos, resCpf);
-    								Ext.getCmp("iso_win").doLayout();
-    								    								
-    							}        						
-        					}        					
-        				}
-        			}
-        		});
-        		        		
-    		} else {
-    			Ext.Msg.alert(tr("isochrone.messagetitle.failrequest"), tr("isochrone.messagetext.failrequest"));
-    		}
-    	});
+		startGeom.forEach(function(p){
+		    var isochrones = [];
+			settings.location = p.x+","+p.y;
+			// fire request
+	    	var area = [];    	
+	    	var order = [];
+	    	times.forEach(function(el, index){
+	    		settings.time = el;
+	    		if(settings.time && settings.location){
+	        		OpenLayers.Request.GET({
+	        			url: service,
+	        			params: settings,
+	        			callback: function(request){
+	        				if(request.responseText){
+	        					// get geom from JSON decode
+	        					var decode = JSON.parse(request.responseText);
+	        					var geom = decode.wktGeometry;
+	        					var wkt = new OpenLayers.Format.WKT();
+	        					var feature = wkt.read(geom);       
+	        					// set style
+	        					feature.style = new OpenLayers.Style();
+	    						feature.style.strokeColor = config.ISOCHRONE_STROKE ? config.ISOCHRONE_STROKE : "rgba(255,255,255,0.4)";       						        					
+	        					// compare area to display feature in good order
+	    						isochrones.push(feature);
+	        					area.push(feature.geometry.getArea());
+	        					if(isochrones.length == times.length){       
+	        						// get area to compare
+	        						var areaMax = Math.max.apply(Math, area);
+	        						var areaMin = Math.min.apply(Math, area);        						
+	        						// insert isochrone to array in order with good style
+	        						function setPos (feature,pos, color){    								
+	    								feature.style.fillColor = config.ISOCHRONES_COLOR[color];
+	    								feature.style.graphicZIndex = pos;
+	    								order[pos]=feature;
+	        						}        			        						
+	        						isochrones.forEach(function(feature){        						
+	        							var measure = feature.geometry.getArea();
+	        							if(measure == areaMax){  
+	        								setPos(feature, 0,2);        								
+	    								}
+	        							else if(measure ==  areaMin){ setPos(feature, 2,0); }
+	        							else{ setPos(feature, 1,1); }
+	        						});        		
+	        						// add to layer 
+	    							order.forEach(function(el, index){
+	    								if(el && el.geometry){
+	    									addon.isoResLayer.addFeatures(el);
+	    									// to zoom on largest extent
+	    									if(index == 0){
+	    										// need to get great bounds in map projection, after feature is added 
+	    										var bounds = addon.isoResLayer.getFeatureById(el.id).geometry.getBounds();
+	    										addon.map.zoomToExtent(bounds);    										
+	    									}
+	    								}
+	    							});
+	    							// insert research in result fieldset
+	    							var resultZone  = Ext.getCmp("iso_result") ? Ext.getCmp("iso_result") : false;
+	    							if(resultZone){
+	    								var pos = resultZone.items.length ? resultZone.items.length : 0 ;    								
+	    								var resCpf = new Ext.form.CompositeField({
+	    									hideLabel: true,
+	    									items:[{
+	    										xtype:"checkbox",
+	    										hideLabel: true,
+	    										checked: true,
+	    										listeners: {
+	    											"check": function(el, checked){
+	    												var array = addon.isoResult[resCpf.id];
+	    												// hide or show feature by style opacity
+	    												function changeOpacity (array, val){														
+															array.forEach(function(el){
+																el.style.fillOpacity = val;
+																el.style.strokeOpacity = val;
+																el.layer.redraw();
+	    													});      													
+	    												}    												
+	    												if(checked){				
+	    													changeOpacity(array,1)
+	    												} else {
+	    													changeOpacity(array,0)
+	    												}
+	    											}
+	    										}
+	    									},{
+	    										xtype:"textfield",
+	    										width: 80,
+	    										cls: "time-field",
+	    										value: tr("isochrone.resulttextfield.value") + (pos + 1)
+	    									},{
+	    										xtype: "button",
+	    										text : "del",
+	    										handler:function(b){
+	    											// thanks to parent id, we find geom to be erase  in isoResult object 
+	    											var parent = b.findParentByType("compositefield");
+	    											var isoFeatures = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false;
+	    											// delete complete line in window, key in feature object and layer features 
+	    											if(isoFeatures){
+	    												addon.isoResLayer.removeFeatures(isoFeatures);
+	    											}
+	    											parent.destroy();
+	    											delete addon.isoResult[parent.id];
+	    										}
+											},{
+												xtype: "button",
+												text : "save"
+											}],
+	    									
+	    								});
+	    								// use to delete geometry according to compositefield in isoResult object
+	    								// exemple : isoResult = {"id123":[feature1, feature2]}
+	    								addon.isoResult[resCpf.id] = isochrones;    								
+	    								// insert new result in window
+	    								resultZone.insert(pos, resCpf);
+	    								Ext.getCmp("iso_win").doLayout();
+	    								    								
+	    							}        						
+	        					}        					
+	        				}
+	        			}
+	        		});
+	        		
+	        		        		
+	    		} else {
+	    			Ext.Msg.alert(tr("isochrone.messagetitle.failrequest"), tr("isochrone.messagetext.failrequest"));
+	    		}
+	    	});
+		});
+    	
+    	
+    	//-- END TIME FOR EACH 
     }
 }; 
 
@@ -691,13 +704,13 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 		width: 290,
 		autoScroll: true,
 		closable: true,
-		closeAction: "hide",
+		closeAction: "close",
 		resizable: true,
 		collapsible: true,
 		buttonAlign: "center",
 		listeners:{
-			"hide": function(){
-	       		 if(addon.isoLayer){
+			"close": function(){
+	   			 if(addon.isoLayer){
 	    			 addon.isoLayer.removeAllFeatures();
 	    		 }
 	    		 if(addon.isoResLayer){
@@ -721,7 +734,7 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
                 xtype: "fieldset",
                 collapsible: true,
                 collapsed: true,
-                cls: "fsStep",
+                cls: "fsOptions",
                 id: "iso_options",
                 title: tr("traveler.options.title"),
                 items: [exclusion],
@@ -737,14 +750,16 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
 			    collapsible: true,
 			    hidden:false,
 			    collapsed: true,
-			    cls: "fsStep",
+			    cls: "fsOptions",			    
 			    id: "iso_result",
 			    title: tr("traveler.isochron.result.title"),
 			    listeners:{
                 	"collapse": function(){ win.syncShadow();},
                 	"expand": function(){ win.syncShadow();},
                 	"remove": function(f){
-                		f.collapse();
+                		if(f.items.length < 1){
+                			f.collapse();
+                		}                		
                 		win.syncShadow();
             		},
                 	"add": function(f){
