@@ -29,7 +29,8 @@
         "ISO_SRS" : "epsg:4326",
         "TIME" : [10,20,30],
         "ISOCHRONES_COLOR": ["rgba(23,178,23,0.6)","rgba(255,231,0,0.5)","rgba(255,0,0,0.5)"],
-        "ISOCHRONE_STROKE": ["rgba(255,255,255,0.5)"]        
+        "ISOCHRONE_STROKE": ["rgba(255,255,255,0.5)"],
+        "LIMIT_GEOM" : 15         
     },
     "i18n": {
         "en": {},        
@@ -54,7 +55,8 @@
         	"route.window.title": "Calcul d'itinéraires",
         	"isochrone.messagetitle.failrequest": "Erreur",
         	"isochrone.messagetext.failrequest": "Le point de départ et le temps doivent être remplis !",
-        	"isochrone.resulttextfield.value": "Résultat "
+        	"isochrone.resulttextfield.value": "Résultat ",
+        	"Wrong geometry !" : "La géométrie est incorrecte !"
         } 
     }
 }
