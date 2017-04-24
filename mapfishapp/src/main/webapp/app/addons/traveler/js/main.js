@@ -66,21 +66,6 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
     },
     
     /**
-     * Method: resizeShadow
-     * Synchronize shadow with window
-     * Parameters:
-     * 		panel - {Ext.form.Panel} panel to contain field and search options
-     * 		window - {Ext.form.Window} main window use to calculate route
-     * 		method - {function} addon method to add new fieldSet
-     */
-
-    resizeShadow: function(win) {
-        if (win) {
-            win.syncShadow()
-        }
-    },
-
-    /**
      * Method: init
      *
      * Parameters:

@@ -1,6 +1,6 @@
 Ext.namespace("GEOR.Addons.Traveler.referential");
 
-GEOR.Addons.Traveler.referential.create = function(addon, fieldSet, inputId) {
+GEOR.Addons.Traveler.referential.create = function(addon) {
     /*
      * Property: comboPanel
      * {Ext.Panel} the panel with the card layout
@@ -25,38 +25,32 @@ GEOR.Addons.Traveler.referential.create = function(addon, fieldSet, inputId) {
      * Callback executed on layer selected
      *
      */
-    var onLayerSelected = function(combo, record, index) { // add new combo under layer combo
-    	// display waiter
-    	GEOR.waiter.show();
-    	
-    	var idx = record.get('name');
-        var pos = fieldSet.items.length;             
+    var onLayerSelected = function(combo, record) { // add new combo under layer combo
+        GEOR.waiter.show();
+        // get parent fieldset an properties
+        var fieldSet = combo.findParentByType("fieldset");
+        var idx = record.get('name');
+        var pos = fieldSet.items.length;
         var protocol = record.get('layer').protocol;
 
         if (fieldSet) {
-
             // check if combo already exists
-            if (addon.featureArray[combo.id]) {
-                Ext.getCmp(addon.featureArray[combo.id]).destroy();
+            if (Ext.getCmp("iso_refAtt")) {
+                Ext.getCmp("iso_refAtt").destroy();
             }
-
             var attStore = GEOR.ows.WFSDescribeFeatureType({
                 owsURL: protocol.url,
                 typeName: idx
             }, {
                 success: function() {
-                	// cb to input and select item
-                    var cb = GEOR.Addons.Traveler.cbAttribute(record, attStore, fieldSet,  combo, addon, inputId);
+                    // cb to input and select item
+                    var cb = GEOR.Addons.Traveler.referential.cbAttribute(record, attStore, combo, addon);
                     // add new panel containing combo to card layout
                     fieldSet.insert(pos, cb);
-                    
-                    // refresh panel layout
-                    if (Ext.getCmp(idPanel)) {
-                        Ext.getCmp(idPanel).doLayout();
-                    }
+                    fieldSet.doLayout();
                 },
                 failure: function() {
-                	// hide waiter
+                    // hide waiter
                     GEOR.waiter.hide();
                 },
                 scope: this
@@ -105,12 +99,15 @@ GEOR.Addons.Traveler.referential.create = function(addon, fieldSet, inputId) {
             editable: false,
             listeners: {
                 select: onLayerSelected,
+                hide: function(){
+                	if(Ext.getCmp("iso_refAtt") && Ext.getCmp("iso_refAtt").isVisible()){
+                		Ext.getCmp("iso_refAtt").hide();
+                	}
+                },
                 scope: this
             }
         });
     };
-
-
 
     /*
      * Public
@@ -119,26 +116,8 @@ GEOR.Addons.Traveler.referential.create = function(addon, fieldSet, inputId) {
 };
 
 // create cb to search attribute
-GEOR.Addons.Traveler.cbAttribute = function(record, attStore, fieldSet, combo, addon, inputId) {
+GEOR.Addons.Traveler.referential.cbAttribute = function(record, attStore, combo, addon) {
     var store, disabled = false;
-
-    /*
-     * Remove existante feature
-     *
-     */
-    var rmFeature = function(addon, id) {    	
-        var arr = addon.featureArray;
-
-        if (arr[id] && arr[id] != "") {
-            var point = addon.layer().getFeatureById(arr[id]);
-            addon.layer().removeFeatures(point);
-        }
-
-        if (addon.resultLayer()) {
-            addon.resultLayer().destroy();
-        }
-    }
-
     /*
      * Method: buildTemplate
      * Returns the template suitable for the currently selected layer
@@ -173,8 +152,7 @@ GEOR.Addons.Traveler.cbAttribute = function(record, attStore, fieldSet, combo, a
      * record - {Ext.data.Record}
      */
     var onComboSelect = function(record, addon, cb) {
-        var layer = addon.layer();
-        var arr = addon.featureArray;
+        var layer = addon.isoLayer;
 
         // get feature attributes from record
         var feature = record.get('feature');
@@ -195,36 +173,29 @@ GEOR.Addons.Traveler.cbAttribute = function(record, attStore, fieldSet, combo, a
                     } else {
                         cbStr = cbStr + " , " + a;
                     }
-
                 }
             };
         }
-
         // get feature geometry
         if (feature.geometry) {
             var geometry = feature.geometry.getCentroid();
-
-            if (geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {                
+            var epsg4326 = new OpenLayers.Projection("epsg:4326");
+            if (geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
                 if (layer) {
+                    addon.isoLayer.removeAllFeatures();
                     var feature = new OpenLayers.Feature.Vector(geometry);
-                	if(inputId){
-                		rmFeature(addon, inputId);
-                		arr[inputId] = feature.id;
-                	} else {
-                		layer.removeAllFeatures();
-                	}                    
                     layer.addFeatures(feature);
-                    GEOR.Addons.traveler.getRoad(addon);
+                    // update location attribute
+                    var locGeom = new OpenLayers.Geometry.Point(feature.geometry.x, feature.geometry.y).transform(addon.map.getProjection(), epsg4326);
+                    addon.isoStart["location"] = [locGeom.x + "," + locGeom.y];
                 }
             }
-
             // display feature data if exist or coordinates
             if (cbStr && cbStr != "") {
                 cb.setValue(cbStr);
             } else {
                 cb.setValue(feature.geometry.x + " , " + feature.geometry.y);
             }
-
         }
     };
 
@@ -322,6 +293,7 @@ GEOR.Addons.Traveler.cbAttribute = function(record, attStore, fieldSet, combo, a
     var cb = new Ext.form.ComboBox({
         loadingText: OpenLayers.i18n("traveler.referential.comboref.loading"),
         fieldClass: "fBan",
+        id: "iso_refAtt",
         hidden: false,
         hideLabel: true,
         name: 'nothing',
@@ -351,8 +323,6 @@ GEOR.Addons.Traveler.cbAttribute = function(record, attStore, fieldSet, combo, a
         }
     });
 
-    addon.featureArray[combo.id] = cb.id;
-
     // hack in order to show the result dataview even
     // in case of "too many features" warning message
     store.on({
@@ -367,4 +337,4 @@ GEOR.Addons.Traveler.cbAttribute = function(record, attStore, fieldSet, combo, a
         scope: this
     });
     return cb;
-}
+};
