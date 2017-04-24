@@ -612,6 +612,7 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                                 checked: true,
                                                 listeners: {
                                                     "check": function(el, checked) {
+                                                    	// get feature from result table corresponding to compositefield id
                                                         var array = addon.isoResult[resCpf.id];
                                                         // hide or show feature by style opacity
                                                         function changeOpacity(array, val) {
@@ -636,9 +637,9 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                             }, {
                                                 xtype: "button",
                                                 text: "del",
-                                                handler: function(b) {
+                                                handler: function(button) {
                                                     // thanks to parent id, we find geom to be erase  in isoResult object 
-                                                    var parent = b.findParentByType("compositefield");
+                                                    var parent = button.findParentByType("compositefield");
                                                     var isoFeatures = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false;
                                                     // delete complete line in window, key in feature object and layer features 
                                                     if (isoFeatures) {
@@ -649,7 +650,23 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                                 }
                                             }, {
                                                 xtype: "button",
-                                                text: "save"
+                                                text: "save",
+                                                handler: function(button){
+                                                	var parent = button.findParentByType("compositefield");
+                                                	var isoFeature = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false;
+                                                	if(isoFeature){
+                                                		var area = 0;
+                                                		var largestGeom;
+                                                		isoFeature.forEach(function(feature){
+                                                			var geomArea = feature.geometry.getArea();
+                                                			if(geomArea > area){
+                                                				area = geomArea;
+                                                				largestFeature = feature;
+                                                			}                                                			
+                                                		});
+                                                		GEOR.Addons.Traveler.isochrone.storeGeometry([feature]);
+                                                	}
+                                                }
                                             }],
 
                                         });
@@ -822,7 +839,6 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
                             largestFeatures.push(largest);
                         }
                     };
-                    console.log(largestFeatures);
                     GEOR.Addons.Traveler.isochrone.storeGeometry(largestFeatures);
                 }
             }
