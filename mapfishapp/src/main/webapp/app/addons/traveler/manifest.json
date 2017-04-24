@@ -56,7 +56,8 @@
         	"isochrone.messagetitle.failrequest": "Erreur",
         	"isochrone.messagetext.failrequest": "Le point de départ et le temps doivent être remplis !",
         	"isochrone.resulttextfield.value": "Résultat ",
-        	"Wrong geometry !" : "La géométrie est incorrecte !"
+        	"Wrong geometry !" : "Aucune géométrie ou géométrie incorrecte !",
+        	"traveler.referential.comboref.emptytext": "Saisir une valeur..."        	
         } 
     }
 }
