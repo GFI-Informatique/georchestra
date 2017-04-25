@@ -1,5 +1,39 @@
-/* MANAGE STYLE FOR METHODE BUTTONS */
+/* ISOCHRONE -----------> GLOBAL STYLE FOR FIELDSET */
 
+.isochrone-fieldset{
+	margin-right:auto;
+	margin-left:20%;
+}
+
+.isochrone-fieldset{
+	margin-right:auto;
+	margin-left:20%;
+}
+
+/* ISOCHRONE -----------> STYLE FOR BAN FIELDSET */
+.isochrone-fieldset-ban{
+	font: normal 10px 'latoregular',tahoma, arial, helvetica, sans-serif;
+}
+
+/* ISOCHRONE -----------> STYLE FOR PARAMS FIELDSET  */
+.isochrone-fieldset-params .x-fieldset-header-text, .fsInfo .x-fieldset-header-text {
+	font-size:12px;
+}
+
+.isochrone-fieldset-params {
+	margin-right:auto;
+	margin-left:20%;
+}
+
+.isochrone-fieldset-params .x-tool {
+	background-image: url(../img/tools-sprites-trans.gif);
+}
+
+.isochrone-fieldset-params .x-tool-toggle-over {
+	background-image: url(../img/tool-sprites.png);
+} 
+
+/* ISOCHRONE -----------> MANAGE STYLE FOR MODE BUTTONS */
 .pedestrian {
 	background-image: url(../img/walk-btn.png);
 	width: 24px !important;
@@ -42,31 +76,58 @@
 	background-color: white !important ;
 }
 
-.mode-button .x-btn-mr, .mode-button .x-btn-ml, .mode-button .x-btn-tr, .mode-button .x-btn-tl, .mode-button .x-btn-bc, .mode-button .x-btn-tc,.mode-button .x-btn-bl,.mode-button .x-btn-br {
+.isochrone-mode-button .x-btn-mr, .isochrone-mode-button .x-btn-ml, .isochrone-mode-button .x-btn-tr, .isochrone-mode-button .x-btn-tl, .isochrone-mode-button .x-btn-bc, .isochrone-mode-button .x-btn-tc,.isochrone-mode-button .x-btn-bl,.isochrone-mode-button .x-btn-br {
 	border: none;
 }
-.mode-button, .mode-button .x-btn-pressed{
+.isochrone-mode-button, .isochrone-mode-button .x-btn-pressed{
 	padding-top: 3px;
 	background-color: white !important;
 }
 
-/* STYLE FOR TIME TEXTFIELD */
-.time-field {
+/* ISOCHRONE -----------> MANAGE STYLE FOR CLEAR & SAVE BUTTONS */
+.isochrone-button-clear{
+	background-image: url(../img/isochrone/clear-blue.png);
+	height: 16px !important;
+	width: 16px !important;	
+}
+
+.isochrone-button-clear:hover{
+	background-image: url(../img/isochrone/clear-hover.png);	
+}
+
+.isochrone-button-saveone {
+	background-image: url(../img/isochrone/download-hover.png);	
+	height: 16px !important;
+	width: 16px !important;
+}
+
+.isochrone-button-saveone:hover{
+	background-image: url(../img/isochrone/download-blue.png);		
+}
+
+/* ISOCHRONE -----------> STYLE FOR TIME TEXTFIELD */
+.isochrone-textfield-time {
 	border:none;
 }
 
+/* ISOCHRONE -----------> STYLE FOR MODE COMPOSITEFIELD */
+.isochrone-compositefield-mode {
+	width:76px;
+	margin-left:auto;
+	margin-right:auto;
+}
 
+/* ISOCHRONE & ROUTE -----------> STYLE FOR BORDER AROUND ACTIONS BUTTONS */
 .actionBtn .x-btn-mr, .actionBtn .x-btn-ml, .actionBtn .x-btn-tr, .actionBtn .x-btn-tl, .actionBtn .x-btn-bc, .actionBtn .x-btn-tc,.actionBtn .x-btn-bl,.actionBtn .x-btn-br{
 	border:none;
 }
 
-
-.actionBtn:hover, .actionBtn:hover, .actionBtn:hover .x-btn-text
-{
+/* ISOCHRONE & ROUTE -----------> STYLE FOR HOVER AROUND BUTTON */
+.actionBtn:hover, .actionBtn:hover .x-btn-text{
 	background-color: rgba(255,255,255,0) !important;
 }
 
-
+/* ROUTE -----------> STYLE FOR ACTIONS BUTTONS */
 .refresh{
 	background-image: url(../img/refresh-blue.png);
 	height: 24px !important;
@@ -90,16 +151,13 @@
 }
 
 .navIcon:hover {
-	background-image: url(../img/directions_24px.png);
-	
+	background-image: url(../img/directions_24px.png);	
 }
 
 .fieldBtn .x-btn-noicon,.fieldBtn .x-btn-small,.fieldBtn .x-btn-text {
 	background-image: url(../img/16px/flag-blue.png);	
 	height:14px !important;
 }
-
-
 
 .gpsIcon {
 	background-image: url(../img/16px/gps-pressed.png);
@@ -138,10 +196,12 @@
 	background-image: url(../img/16px/clear-hover.png);		
 }
 
+/* ROUTE -----------> STYLE FOR BAN FIELDSET */
 .fBan {
 	font: normal 10px 'latoregular',tahoma, arial, helvetica, sans-serif;
 }
 
+/* ROUTE -----------> GLOBAL STYLE FOR FIELDSET */
 .fsOptions .x-fieldset-header-text, .fsInfo .x-fieldset-header-text {
 	font-size:12px;
 }
@@ -159,11 +219,6 @@
 	background-image: url(../img/tool-sprites.png);
 } 
 
-.cpMode {
-	width:76px;
-	margin-left:auto;
-	margin-right:auto;
-}
 
 .fsStep{
 	margin-right:auto;
@@ -173,4 +228,12 @@
 .fsInfo {
 	border-top:1px solid;
     border-top-color:rgba(0,126,195,0.7);
+}
+
+/* STYLE FOR COMPOSITEFIELD  */
+
+.cpMode {
+	width:76px;
+	margin-left:auto;
+	margin-right:auto;
 }

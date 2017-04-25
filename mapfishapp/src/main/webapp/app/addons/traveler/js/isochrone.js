@@ -123,7 +123,7 @@ GEOR.Addons.Traveler.isochrone.time = function(addon) {
             xtype: "textfield",
             value: "min",
             width: 25,
-            cls: "time-field",
+            cls: "isochrone-textfield-time",
             readOnly: true,
             height: 15
         }, {
@@ -135,7 +135,7 @@ GEOR.Addons.Traveler.isochrone.time = function(addon) {
         }, {
             xtype: "textfield",
             width: 25,
-            cls: "time-field",
+            cls: "isochrone-textfield-time",
             value: "min",
             readOnly: true,
             height: 15
@@ -149,7 +149,7 @@ GEOR.Addons.Traveler.isochrone.time = function(addon) {
         }, {
             xtype: "textfield",
             width: 25,
-            cls: "time-field",
+            cls: "isochrone-textfield-time",
             value: "min",
             readOnly: true,
             height: 15
@@ -166,12 +166,12 @@ GEOR.Addons.Traveler.isochrone.mode = function() {
     }
     return new Ext.form.CompositeField({
         id: "iso_modeCp",
-        cls: "cpMode",
+        cls: "isochrone-compositefield-mode",
         items: [{
             xtype: "button",
             tooltip: OpenLayers.i18n("pedestrian"),
             id: "iso_pedestrian",
-            cls: "mode-button",
+            cls: "isochrone-mode-button",
             iconCls: "pedestrian",
             enableToggle: true,
             allowDepress: false,
@@ -191,7 +191,7 @@ GEOR.Addons.Traveler.isochrone.mode = function() {
             tooltip: OpenLayers.i18n("vehicle"),
             id: "iso_vehicle",
             iconCls: "vehicle-pressed",
-            cls: "mode-button",
+            cls: "isochrone-mode-button",
             allowDepress: false,
             enableToggle: true,
             pressed: true,
@@ -298,6 +298,7 @@ GEOR.Addons.Traveler.isochrone.ban = function(map, layer, service, startPoints) 
         tooltip: OpenLayers.i18n("isochron.ban.tooltip"),
         hideLabel: true,
         hideTrigger: true,
+        cls: "isochrone-fieldset-ban",
         store: banStore,
         displayField: "label",
         width: 160,
@@ -391,6 +392,7 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef)
         hideLabel: true,
         id: "iso_geom",
         hidden: false,
+        cls:"",
         boxLabel: tr("traveler.isochrone.searchgeometry"),
         listeners: {
             "check": function(cb, checked) {
@@ -456,7 +458,7 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban, layer) {
     var fields = new Ext.form.FieldSet({
         autoWidht: true,
         hideLabel: true,
-        cls: "fsStep",
+        cls: "isochrone-fieldset",
         id: "iso_input",
         items: [ban]
     });
@@ -632,11 +634,13 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                             }, {
                                                 xtype: "textfield",
                                                 width: 80,
-                                                cls: "time-field",
+                                                cls: "isochrone-textfield-time",
                                                 value: tr("isochrone.resulttextfield.value") + (pos + 1)
                                             }, {
                                                 xtype: "button",
-                                                text: "del",
+                                                cls:"actionBtn",
+                                                iconCls:"isochrone-button-clear",
+                                                tooltip: tr("traveler.isochrone.button.clearoneresult.tooltip"),
                                                 handler: function(button) {
                                                     // thanks to parent id, we find geom to be erase  in isoResult object 
                                                     var parent = button.findParentByType("compositefield");
@@ -650,7 +654,9 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                                 }
                                             }, {
                                                 xtype: "button",
-                                                text: "save",
+                                                iconCls: "isochrone-button-saveone",
+                                                tooltip: tr("traveler.isochrone.button.saveonegeom.tooltip"),
+                                                cls:"actionBtn",
                                                 handler: function(button){
                                                 	var parent = button.findParentByType("compositefield");
                                                 	var isoFeature = addon.isoResult[parent.id] && addon.isoResult[parent.id].length > 0 ? addon.isoResult[parent.id] : false;
@@ -776,7 +782,7 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
             items: [mode, fSet, {
                 xtype: "fieldset",
                 fieldLabel: "isochrones",
-                cls: "fsStep",
+                cls: "isochrone-fieldset",
                 id: "iso_timeFset",
                 items: [timeFields]
             }, {
@@ -786,7 +792,7 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
                 xtype: "fieldset",
                 collapsible: true,
                 collapsed: true,
-                cls: "fsOptions",
+                cls: "isochrone-fieldset-params",
                 id: "iso_options",
                 title: tr("traveler.options.title"),
                 items: [timeFields, exclusion]
@@ -798,7 +804,7 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
                 collapsible: true,
                 hidden: false,
                 collapsed: true,
-                cls: "fsOptions",
+                cls: "isochrone-fieldset-params",
                 id: "iso_result",
                 title: tr("traveler.isochron.result.title"),
                 listeners: {
@@ -814,14 +820,16 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
             }]
         }],
         buttons: [{
-            text: "Calculer",
+            text: tr("traveler.isochrone.button.firerequest.text"),
+            tooltip: tr("traveler.isochrone.button.firerequest.tooltip"),
             listeners: {
                 "click": function(b) {
                     GEOR.Addons.Traveler.isochrone.createIsochrone(addon);
                 }
             }
         }, {
-            text: "Enregistrer",
+            text: tr("traveler.isochrone.button.saveallgeom.text"),
+            tooltip: tr("traveler.isochrone.button.saveallgeom.tooltip"),
             listeners: {
                 click: function(b) {
                     // get isochrones geom and store
