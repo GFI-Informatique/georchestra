@@ -33,17 +33,19 @@ GEOR.Addons.Traveler.isochrone.layer = function(map, style) {
     return layer;
 };
 
-GEOR.Addons.Traveler.isochrone.resultLayer = function(map) {
+GEOR.Addons.Traveler.isochrone.resultLayer = function(addon) {
+	var map = addon.map;
+	var name = addon.options.ISO_LAYER_NAME;
     var from = new OpenLayers.Projection("EPSG:4326");
     var layer;
 
     if (map) { // get layer if exist        	
-        if (map.getLayersByName("iso_res").length > 0 && map.getLayersByName("iso_res")[0]) {
-            layer = map.getLayersByName("iso_res")[0];
+        if (map.getLayersByName(name).length > 0 && map.getLayersByName(name)[0]) {
+            layer = map.getLayersByName(name)[0];
         } else { // or create layer
             var layerOptions = OpenLayers.Util.applyDefaults(
                 this.layerOptions, {
-                    displayInLayerSwitcher: false,
+                    displayInLayerSwitcher: true,
                     projection: map.getProjectionObject(),
                     preFeatureInsert: function(feature) {
                         feature.geometry.transform(from, map.getProjectionObject());
@@ -60,7 +62,7 @@ GEOR.Addons.Traveler.isochrone.resultLayer = function(map) {
                     }
                 }
             );
-            layer = new OpenLayers.Layer.Vector("iso_res", layerOptions);
+            layer = new OpenLayers.Layer.Vector(name, layerOptions);
             map.addLayer(layer);
         }
     }
@@ -330,8 +332,9 @@ GEOR.Addons.Traveler.isochrone.ban = function(addon, service, startPoints) {
 /**
  *  Zone de saisie d'un point
  */
-GEOR.Addons.Traveler.isochrone.banField = function(addon, banEl, control) {
+GEOR.Addons.Traveler.isochrone.banField = function(addon, banEl) {
 	var layer = addon.isoLayer;
+	var control = addon.isoControl;
 
     return new Ext.form.CompositeField({
         hideLabel: true,
@@ -401,6 +404,9 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef)
         boxLabel: tr("traveler.isochrone.searchgeometry"),
         listeners: {
             "check": function(cb, checked) {
+            	if (addon.isoControl.active) {
+                    addon.isoControl.deactivate();
+                }
             	var inputFset;
             	if(Ext.getCmp("iso_input")){
                 	inputFest = Ext.getCmp("iso_input");

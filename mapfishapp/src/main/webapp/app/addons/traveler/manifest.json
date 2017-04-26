@@ -1,6 +1,5 @@
 {
     "js": [
-    	"js/referential.js",
         "js/main.js",
         "js/referential.js",
         "js/route.js",
@@ -30,7 +29,8 @@
         "TIME" : [10,20,30],
         "ISOCHRONES_COLOR" : ["rgba(23,178,23,0.6)","rgba(255,231,0,0.5)","rgba(255,0,0,0.5)"],
         "ISOCHRONE_STROKE" : ["rgba(255,255,255,0.5)"],
-        "LIMIT_GEOM" : 10         
+        "LIMIT_GEOM" : 10,
+        "ISO_LAYER_NAME": "Isochrones"         
     },
     "i18n": {
         "en": {},        
@@ -66,7 +66,8 @@
         	"traveler.isochrone.button.firerequest.tooltip":"Lancer la recherche",
         	"traveler.isochrone.msg.nogeom":"Veuillez renseigner un point ou une géométrie de départ.",
         	"traveler.isochrone.msg.notimes":"Veuillez renseigner au moins un temps de calcul.",
-        	"Traveler.isochrone.msg.outoflimit":"Le nombre de point est supérieure à la limite fixée."        	
+        	"Traveler.isochrone.msg.outoflimit":"Le nombre de point est supérieure à la limite fixée.",
+        	"Traveler.isochrone.msg.loader":"Calcul en cours..."        	
         } 
     }
 }
