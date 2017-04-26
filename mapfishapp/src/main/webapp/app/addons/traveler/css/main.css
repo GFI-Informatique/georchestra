@@ -1,3 +1,13 @@
+/* ISOCHRONE -----------> TOOLS ICONS */
+
+.addon-isochrone-icon{
+	background-image: url(../img/isochrone/icon.png)!important;
+}
+
+.addon-route-icon{
+	background-image: url(../img/route/icon.png)!important;
+}
+
 /* ISOCHRONE -----------> GLOBAL STYLE FOR FIELDSET */
 
 .isochrone-fieldset{

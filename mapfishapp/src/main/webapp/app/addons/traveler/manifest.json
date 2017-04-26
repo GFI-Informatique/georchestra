@@ -18,7 +18,7 @@
         },
         "GEOSERVER_WFS_URL":"/geoserver/wfs",
         "LAYER_WORKSPACE":"geor_loc",
-        "NB_RESULT":5,
+        "BAN_RESULT":5,
         "DEACCENTUATE_REFERENTIALS_QUERYSTRING": true,
         "BAN_URL":"https://api-adresse.data.gouv.fr/search/?",
         "ISOCHRONE_SERVICE":"http://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/isochrone/isochrone.json",
@@ -28,9 +28,9 @@
         "SMOOTHING" :true,
         "ISO_SRS" : "epsg:4326",
         "TIME" : [10,20,30],
-        "ISOCHRONES_COLOR": ["rgba(23,178,23,0.6)","rgba(255,231,0,0.5)","rgba(255,0,0,0.5)"],
-        "ISOCHRONE_STROKE": ["rgba(255,255,255,0.5)"],
-        "LIMIT_GEOM" : 15         
+        "ISOCHRONES_COLOR" : ["rgba(23,178,23,0.6)","rgba(255,231,0,0.5)","rgba(255,0,0,0.5)"],
+        "ISOCHRONE_STROKE" : ["rgba(255,255,255,0.5)"],
+        "LIMIT_GEOM" : 10         
     },
     "i18n": {
         "en": {},        
@@ -63,7 +63,10 @@
         	"traveler.isochrone.button.clearoneresult.tooltip":"Retirer ce résultat de la carte",
         	"traveler.isochrone.button.firerequest.text":"Calculer",
         	"traveler.isochrone.button.saveallgeom.text":"Enregistrer",    
-        	"traveler.isochrone.button.firerequest.tooltip":"Lancer la recherche"
+        	"traveler.isochrone.button.firerequest.tooltip":"Lancer la recherche",
+        	"traveler.isochrone.msg.nogeom":"Veuillez renseigner un point ou une géométrie de départ.",
+        	"traveler.isochrone.msg.notimes":"Veuillez renseigner au moins un temps de calcul.",
+        	"Traveler.isochrone.msg.outoflimit":"Le nombre de point est supérieure à la limite fixée."        	
         } 
     }
 }

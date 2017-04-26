@@ -7,6 +7,10 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      */
     map: null,    
     
+    loader: function(){
+    	return new Ext.LoadMask(Ext.getBody(), {msg: "Please wait..."})
+	},
+    
     /**
      * Method: featureRouteArray
      * create object containing way point
@@ -81,41 +85,40 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                 //handler: isochrone.window(),
 	                 map: this.map,
 	                 group: "_travel",
-	                 iconCls: "addon-icon",
+	                 iconCls: "addon-isochrone-icon",
 	                 id:"iso_tool",
 	                 listeners:{
 	                	"click": function(box){
-	                	 if(!Ext.getCmp("iso_win")){
-	                		 // create items
-	                		 addon.isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
-		                	 addon.isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
-		                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
-		                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
-		                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon.map,addon.isoLayer, addon.options.BAN_URL, addon.isoStart);
-		                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, addon.isoLayer, addon.isoStart, banCb.id);
-		                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon.map, addon.isoLayer, banCb, isoControl);
-		                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);
-		                	 var isoTime = GEOR.Addons.Traveler.isochrone.time(addon);
-		                	 // create window to finalize isochrone init
-		                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud, addon, isoTime);		                	 	                			                	 
-		                	 isoWin.show();		                	 
-	                	 } else {
-	                		 var window = Ext.getCmp("iso_win");
-	                		 if(!window.isVisible()){
-	                			 window.show();
-	                		 }
-	                	 }	                	 	                	 
-	                 } 
+		                	 if(!Ext.getCmp("iso_win")){
+		                		 // create items
+		                		 addon.isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
+			                	 addon.isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon.map);
+			                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
+			                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
+			                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon, addon.options.BAN_URL, addon.isoStart);
+			                	 var isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, addon.isoLayer, addon.isoStart, banCb.id);
+			                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon, banCb, isoControl);
+			                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);
+			                	 var isoTime = GEOR.Addons.Traveler.isochrone.time(addon);
+			                	 // create window to finalize isochrone init
+			                	 var isoWin = GEOR.Addons.Traveler.isochrone.window(isoMode,isoFielSet, isoExclud, addon, isoTime);		                	 	                			                	 
+			                	 isoWin.show();		                	 
+		                	 } else {
+		                		 var window = Ext.getCmp("iso_win");
+		                		 if(!window.isVisible()){
+		                			 window.show();
+		                		 }
+		                	 }	                	 	                	 
+	                	} 
 	                 }
 	             })
 	         ), new Ext.menu.CheckItem(
 	             new Ext.Action({
 	                 text: OpenLayers.i18n("route"),
 	                 qtip: OpenLayers.i18n("route"),
-	                 //handler: this.openIsochrone,
 	                 map: this.map,
 	                 group: "_travel",
-	                 iconCls: "addon-icon"
+	                 iconCls: "addon-route-icon"
 	             })
 	         )
         ];               
