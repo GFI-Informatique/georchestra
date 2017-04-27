@@ -84,35 +84,36 @@ GEOR.Addons.Traveler.isochrone.resultLayer = function(addon) {
  */
 GEOR.Addons.Traveler.isochrone.drawControl = function(map, layer, obj, fId) {
     var epsg4326 = new OpenLayers.Projection("EPSG:4326");
-    if (map) {
-        var control = map.getControlsBy("id", "iso_draw").length == 1 ? map.getControlsBy("id", "iso_draw")[0] : false;
-        // if not exist add control
-        if (map && layer && !control) {
-            var controlOptions = OpenLayers.Util.applyDefaults(
-                this.pointControlOptions, {
-                    id: "iso_draw"
-                }
-            );
-            control = new OpenLayers.Control.DrawFeature(layer, OpenLayers.Handler.Point, controlOptions);
-            control.events.on({
-                "featureadded": function(event) {
-                    control.deactivate();
-                    var feature = event.feature;
-                    // limit decimals
-                    var x = Math.round(feature.geometry.x * 10000) / 10000;
-                    var y = Math.round(feature.geometry.y * 10000) / 10000;
-                    if (obj && feature.geometry) {
-                        // transform geom to 4326 and set combo value in 3857
-                        var locGeom = new OpenLayers.Geometry.Point(feature.geometry.x, feature.geometry.y).transform(map.getProjection(), epsg4326);
-                        obj["location"] = [locGeom.x + "," + locGeom.y];
-                        // display text field
-                        Ext.getCmp(fId).setValue(x + "/" + y);
-                    }
-                },
-                scope: this
-            });
-            map.addControl(control);
+    var control;
+    if (map && layer) {    	
+        if(map.getControlsBy("id", "iso_draw")){
+        	map.removeControl(map.getControlsBy("id", "iso_draw")[0]);
         }
+        // if not exist add control
+        var controlOptions = OpenLayers.Util.applyDefaults(
+            this.pointControlOptions, {
+                id: "iso_draw"
+            }
+        );
+        control = new OpenLayers.Control.DrawFeature(layer, OpenLayers.Handler.Point, controlOptions);
+        control.events.on({
+            "featureadded": function(event) {
+                control.deactivate();
+                var feature = event.feature;
+                // limit decimals
+                var x = Math.round(feature.geometry.x * 10000) / 10000;
+                var y = Math.round(feature.geometry.y * 10000) / 10000;
+                if (obj && feature.geometry) {
+                    // transform geom to 4326 and set combo value in 3857
+                    var locGeom = new OpenLayers.Geometry.Point(feature.geometry.x, feature.geometry.y).transform(map.getProjection(), epsg4326);
+                    obj["location"] = [locGeom.x + "," + locGeom.y];
+                    // display text field
+                    Ext.getCmp(fId).setValue(x + "/" + y);
+                }
+            },
+            scope: this
+        });
+        map.addControl(control);        
         return control;
     }
 };
