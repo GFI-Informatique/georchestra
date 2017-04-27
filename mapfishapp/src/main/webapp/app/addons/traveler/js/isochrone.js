@@ -174,7 +174,8 @@ GEOR.Addons.Traveler.isochrone.time = function(addon) {
  * Créer les boutons pour séléctionner le mode de déplacement
  */
 GEOR.Addons.Traveler.isochrone.mode = function() {
-    if (Ext.getCmp("iso_modeCp")) {
+    var tr = OpenLayers.i18n;
+	if (Ext.getCmp("iso_modeCp")) {
         Ext.getCmp("iso_modeCp").destroy();
     }
     return new Ext.form.CompositeField({
@@ -182,7 +183,7 @@ GEOR.Addons.Traveler.isochrone.mode = function() {
         cls: "isochrone-compositefield-mode",
         items: [{
             xtype: "button",
-            tooltip: OpenLayers.i18n("pedestrian"),
+            tooltip: tr("isochrone.button.pedestrian"),
             id: "iso_pedestrian",
             cls: "isochrone-mode-button",
             iconCls: "pedestrian",
@@ -201,7 +202,7 @@ GEOR.Addons.Traveler.isochrone.mode = function() {
             }
         }, {
             xtype: "button",
-            tooltip: OpenLayers.i18n("vehicle"),
+            tooltip: tr("isochrone.button.vehicle"),
             id: "iso_vehicle",
             iconCls: "vehicle-pressed",
             cls: "isochrone-mode-button",
