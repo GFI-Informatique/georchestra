@@ -23,7 +23,17 @@ GEOR.Addons.Traveler.isochrone.layer = function(map, style) {
                 this.layerOptions, {
                     displayInLayerSwitcher: false,
                     projection: map.getProjectionObject(),
-                    styleMap: olStyle
+                    styleMap: olStyle,
+                    onFeatureInsert: function(feature) {
+                    	map.setCenter([feature.geometry.x, feature.geometry.y], 12, false);
+                        var z = 0;
+                        map.layers.forEach(function(el) {
+                            z = el.getZIndex() > z ? el.getZIndex() : z;
+                        });
+                        if(feature.layer.getZIndex() < z){
+                        	feature.layer.setZIndex(z+1);
+                        }
+                    }
                 }
             );
             layer = new OpenLayers.Layer.Vector("iso_points", layerOptions);
@@ -51,13 +61,13 @@ GEOR.Addons.Traveler.isochrone.resultLayer = function(addon) {
                         feature.geometry.transform(from, map.getProjectionObject());
                     },
                     onFeatureInsert: function() { // display start point layer to front
-                        if (map.getLayersByName("iso_points").length > 0 && map.getLayersByName("iso_points")[0]) {
+                        if (addon.isoLayer) {
                             var z = 0;
                             map.layers.forEach(function(el) {
                                 z = el.getZIndex() > z ? el.getZIndex() : z;
 
                             });
-                            map.getLayersByName("iso_points")[0].setZIndex(z + 1);
+                            addon.isoLayer.setZIndex(z + 1);
                         }
                     }
                 }
@@ -603,6 +613,7 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
             times.forEach(function(el, index) {
                 settings.time = el;                               
                 if (settings.time && settings.location) {
+                	// fire request
                 	var feature = GEOR.Addons.Traveler.isochrone.fireRequest(service, settings);
                     if(feature && !feature.status){
                         // set style
@@ -632,16 +643,10 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                     setPos(feature, 1, 1);
                                 }
                             });
-                            // add to layer 
+                            // add to layer and zoom on layer extent
                             order.forEach(function(el, index) {
                                 if (el && el.geometry) {
                                     addon.isoResLayer.addFeatures(el);
-                                    // to zoom on largest extent
-                                    if (index == 0) {
-                                        // need to get great bounds in map projection, after feature is added 
-                                        var bounds = addon.isoResLayer.getFeatureById(el.id).geometry.getBounds();
-                                        addon.map.zoomToExtent(bounds);
-                                    }
                                 }
                             });
                             // insert research in result fieldset
@@ -722,6 +727,7 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                 // exemple : isoResult = {"id123":[feature1, feature2]}
                                 addon.isoResult[resCpf.id] = isochrones;                                        
                                 // insert new result in window
+                                addon.map.zoomToExtent(addon.isoResLayer.getDataExtent());
                                 resultZone.insert(pos, resCpf);
                                 Ext.getCmp("iso_win").doLayout();
                             }
@@ -813,10 +819,18 @@ GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, t
         listeners: {
             "close": function() {
                 if (addon.isoLayer) {
-                    addon.isoLayer.removeAllFeatures();
+                    addon.isoLayer.destroy();
                 }
                 if (addon.isoResLayer) {
-                    addon.isoResLayer.removeAllFeatures();
+                    if(addon.isoResLayer.displayInLayerSwitcher && Ext.getCmp("geor-layerManager")){
+                    	var layerInTree = Ext.getCmp("geor-layerManager").root.childNodes;
+                    	layerInTree.forEach(function(el){
+                    		if(el.text == addon.isoResLayer.name){
+                    			el.remove();
+                    		}
+                    	});
+                    }
+                    addon.isoResLayer.destroy();
                 }
             }
         },
