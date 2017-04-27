@@ -404,6 +404,7 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef)
         boxLabel: tr("traveler.isochrone.searchgeometry"),
         listeners: {
             "check": function(cb, checked) {
+            	// manage others ext composents
             	if (addon.isoControl.active) {
                     addon.isoControl.deactivate();
                 }
@@ -414,7 +415,7 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef)
                 if (checked) {
                     var to = new OpenLayers.Projection("epsg:4326");
                     // get geometry from localstorage - epsg 3857
-                    if (Ext.state.Manager.getProvider()) {
+                    if (Ext.state.Manager.getProvider() &&  Ext.state.Manager.getProvider().get("geometry")) {
                         addon.isoLayer.removeAllFeatures();
                         var geomStr = Ext.state.Manager.getProvider().decodeValue(Ext.state.Manager.getProvider().get("geometry"));
                         var feature = (new OpenLayers.Format.WKT()).read(geomStr);
@@ -451,6 +452,11 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef)
                             // uncheck checkbox
                             cb.reset();
                         }
+                    } else {
+                    	GEOR.util.infoDialog({
+                            msg: tr("traveler.isochrone.msg.nogeom")
+                        });
+                    	cb.reset();
                     }
                 } else {
                 	if(inputFest){
@@ -615,6 +621,7 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                 feature.style.graphicZIndex = pos;
                                 order[pos] = feature;
                             }
+                            // Order geometry 
                             isochrones.forEach(function(feature) {
                                 var measure = feature.geometry.getArea();
                                 if (measure == areaMax) {
