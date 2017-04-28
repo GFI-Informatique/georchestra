@@ -113,12 +113,12 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                	"click": function(box){
 		                	 if(!Ext.getCmp("iso_win")){
 		                		 // create items
-		                		 addon.isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon.map, addon.options.POINT_STYLE);
+		                		 addon.isoLayer = GEOR.Addons.Traveler.isochrone.layer(addon);
 			                	 addon.isoResLayer = GEOR.Addons.Traveler.isochrone.resultLayer(addon);
 			                	 var isoMode = GEOR.Addons.Traveler.isochrone.mode();
 			                	 var isoExclud = GEOR.Addons.Traveler.isochrone.exclusions();
-			                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon, addon.options.BAN_URL, addon.isoStart);
-			                	 addon.isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon.map, addon.isoLayer, addon.isoStart, banCb.id);
+			                	 var banCb = GEOR.Addons.Traveler.isochrone.ban(addon);
+			                	 addon.isoControl = GEOR.Addons.Traveler.isochrone.drawControl(addon, banCb.id);
 			                	 var isoBan = GEOR.Addons.Traveler.isochrone.banField(addon, banCb);
 			                	 var isoFielSet = GEOR.Addons.Traveler.isochrone.pointFset(addon, isoBan);
 			                	 var isoTime = GEOR.Addons.Traveler.isochrone.time(addon);
