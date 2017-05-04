@@ -1,246 +1,301 @@
 Ext.namespace("GEOR.Addons.Traveler.route");
 
-GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
-
-    win: null,
-    addressField: null,
-
-    featureArray: new Object(),
-
-    /**
-     * Method: map
-     * get current map
-     *     
-     */
-    map: function() {
-        if (GeoExt.MapPanel.guess().map) {
-            return GeoExt.MapPanel.guess().map;
-        }
-    },
-
-
-    /**
-     * Method: layer
-     * create point layer
-     *     
-     */
-    layer: function() {
-        var layerAddon;
-        var a = this;
-        var style = new OpenLayers.StyleMap(this.options.POINT_STYLE);
-
-        if (this.map) {
-
-            // create and add layer to map if not exist
-            if (this.map.getLayersByName("traveler_Layer").length == 1) {
-                layerAddon = GeoExt.MapPanel.guess().map.getLayersByName("traveler_Layer")[0];
-            } else {
-                var layerOptions = OpenLayers.Util.applyDefaults(
-                    this.layerOptions, {
-                        displayInLayerSwitcher: false,
-                        projection: a.map.getProjectionObject(),
-                        styleMap: style
-                    }
-                );
-                layerAddon = new OpenLayers.Layer.Vector("traveler_Layer", layerOptions);
-                this.map.addLayer(layerAddon);
-            }
-        }
-        return layerAddon;
-    },
-
-    /**
-     * Method: resultLayer
-     * create layer to contain route
-     *     
-     */
-    resultLayer: function() {
-        var resultLayer;
-
-        var map = this.map;
-        var from = new OpenLayers.Projection("EPSG:4326");
-        var style = new OpenLayers.StyleMap(this.options.RESULT_STYLE);
-
-        if (map) {
-            // create and add layer to map if not exist
-            if (map.getLayersByName("traveler_result").length == 1) {
-                resultLayer = GeoExt.MapPanel.guess().map.getLayersByName("traveler_result")[0];
-            } else {
-                var layerOptions = OpenLayers.Util.applyDefaults(
-                    this.layerOptions, {
-                        displayInLayerSwitcher: false,
-                        projection: map.getProjectionObject(),
-                        styleMap: style,
-                        preFeatureInsert: function(feature) {
-                            feature.geometry.transform(from, map.getProjectionObject());
+/**
+ * Création de la couche de points
+ */
+GEOR.Addons.Traveler.route.pointsLayer = function(addon) {
+    var resultLayer;
+    var olStyle;
+    var map = addon.map;
+    var from = new OpenLayers.Projection("EPSG:4326");
+    var style = addon.options.POINT_STYLE ? addon.options.POINT_STYLE : false;
+    if (style) { // get style if exist
+        olStyle = new OpenLayers.StyleMap(style);
+    } else { // or create style
+        olStyle = new OpenLayers.StyleMap({
+            "default": new OpenLayers.Style({
+                strokeColor: "orange",
+                strokeOpacity: 0.5,
+                strokeWidth: 1,
+                fillColor: "orange",
+                fillOpacity: 0.6
+            })
+        });
+    }
+    if (map) {
+        // manage if exist
+        if (map.getLayersByName("route_points").length > 1) {
+            resultLayer = GeoExt.MapPanel.guess().map.getLayersByName("route_points")[0];
+        } else {
+            // layer options
+            var layerOptions = OpenLayers.Util.applyDefaults(
+                this.layerOptions, {
+                    displayInLayerSwitcher: false,
+                    projection: map.getProjectionObject(),
+                    styleMap: olStyle,
+                    onFeatureInsert: function(feature) {
+                        var z = 0;
+                        map.layers.forEach(function(el) { // change index
+                            z = el.getZIndex() > z ? el.getZIndex() : z;
+                        });
+                        if (feature.layer.getZIndex() < z) {
+                            feature.layer.setZIndex(z + 1);
                         }
-                    }
-                );
-                resultLayer = new OpenLayers.Layer.Vector("traveler_result", layerOptions);
-                map.addLayer(resultLayer);
-
-            }
-        }
-        return resultLayer;
-    },
-
-    /**
-     * Method: drawControl
-     * create control to draw point by click if not exist
-     *     
-     */
-
-    drawControl: function() {
-
-        var controlOptions;
-        var addon = this;
-        var control = this.map.getControlsBy("id", "traveler_point_ctrl").length == 1 ? this.map.getControlsBy("id", "traveler_point_ctrl")[0] : false;
-
-        // if control not exist create and add it
-        if (addon.map && addon.layer() && !control) {
-            controlOptions = OpenLayers.Util.applyDefaults(
-                this.pointControlOptions, {
-                    id: "traveler_point_ctrl"
+                    },
                 }
             );
+            // add layer
+            resultLayer = new OpenLayers.Layer.Vector("route_points", layerOptions);
+            map.addLayer(resultLayer);
+        }
+    }
+    return resultLayer;
+};
 
-            control = new OpenLayers.Control.DrawFeature(addon.layer(), OpenLayers.Handler.Point, controlOptions);
 
-            control.events.on({
-                "featureadded": function() {
-                    var str = "vec_";
+/**
+ * Création de la couche de résultat
+ * 
+ */
 
-                    control.deactivate();
-
-                    var indx = addon.layer().features.length - 1;
-                    var feature = addon.layer().features[indx];
-                    var lastPid = feature.id;
-                    var x = Math.round(feature.geometry.x * 10000) / 10000;
-                    var y = Math.round(feature.geometry.y * 10000) / 10000;
-                    if (addon.lastFieldUse) {
-                        addon.featureArray[addon.lastFieldUse] = lastPid;
-                        Ext.getCmp(addon.lastFieldUse).setValue(x + " / " + y);
+GEOR.Addons.Traveler.route.linesLayer = function(addon) {
+    var from = new OpenLayers.Projection("EPSG:4326");
+    var resultLayer;
+    var options = addon.options;
+    var style = addon.options.ROUTE_STYLE ? new OpenLayers.StyleMap(options.ROUTE_STYLE) : false;
+    if (!style) {
+        style = new OpenLayers.StyleMap({
+            "default": new OpenLayers.Style({
+                strokeColor: "rgba(0,179,253,0.7)",
+                strokeOpacity: 1,
+                strokeWidth: 5,
+                strokeLinecap: "round",
+                strokeDashstyle: "solid"
+            })
+        });
+    }
+    var map = addon.map;
+    if (map) {
+        // create and add layer to map if not exist
+        if (map.getLayersByName("route_lines").length == 1) {
+            resultLayer = GeoExt.MapPanel.guess().map.getLayersByName("route_lines")[0];
+        } else {
+            // layer options
+            var layerOptions = OpenLayers.Util.applyDefaults(
+                this.layerOptions, {
+                    displayInLayerSwitcher: false,
+                    projection: map.getProjectionObject(),
+                    styleMap: style,
+                    preFeatureInsert: function(feature) {
+                        feature.geometry.transform(from, map.getProjectionObject());
                     }
+                }
+            );
+            // add layer
+            resultLayer = new OpenLayers.Layer.Vector("route_lines", layerOptions);
+            map.addLayer(resultLayer);
+        }
+    }
+    return resultLayer;
+};
 
-                    // fire routing
-                    GEOR.Addons.traveler.getRoad(addon);
+/**
+ * Création du contrôle de dessin
+ */
 
+GEOR.Addons.Traveler.route.routeControl = function(addon) {
+    var controlOptions;
+    var map = addon.map;
+    var layer = addon.routePoints ? addon.routePoints : false;
+    var control = addon.routeControl && map.getControlsBy("id", addon.routeControl.id).length > 0 ? addon.routeControl : false; // manage if already exist    
+    if (map && layer && !control) { // create and add control if not already exist                 	
+        controlOptions = OpenLayers.Util.applyDefaults( // options
+            this.pointControlOptions, {
+                id: "route_pointCtrl"
+            }
+        );
+        control = new OpenLayers.Control.DrawFeature(layer, OpenLayers.Handler.Point, controlOptions);
+        control.events.on({
+            "featureadded": function() {
+                control.deactivate();
+                var str = "vec_";
+                var indx = layer.features.length - 1;
+                var feature = layer.features[indx];
+                var lastPid = feature.id;
+                var x = Math.round(feature.geometry.x * 10000) / 10000;
+                var y = Math.round(feature.geometry.y * 10000) / 10000;
+                if (addon.lastFieldUse) {
+                    addon.featureArray[addon.lastFieldUse] = lastPid;
+                    Ext.getCmp(addon.lastFieldUse).setValue(x + " / " + y);
+                }
+                GEOR.Addons.Traveler.route.getRoad(addon); // fire routing
+            },
+            scope: this
+        });
+        map.addControl(control); // add control to map
+        if (!addon.routeControl) {
+            addon.routeControl = control;
+        }
+    }
+    return control;
+};
+
+/**
+ * 
+ */
+GEOR.Addons.Traveler.route.modeBtn = function(addon) {
+    return new Ext.form.CompositeField({
+        // first window's panel
+        cls: "cpMode",
+        items: [{
+            xtype: "button",
+            height: 35,
+            id: "route_walkBtn",
+            width: 35,
+            tooltip: OpenLayers.i18n("Traveler.route.walk.tooltip"),
+            enableToggle: true,
+            toggleGroup: "modeBtn",
+            iconCls: "route_walkBtn",
+            cls: "walkStyle",
+            listeners: {
+                "mouseover": function(button) {
+                    if (!button.pressed) {
+                        button.setIconClass("walk-over");
+                    }
                 },
-                scope: this
-            });
-
-            // add control
-            addon.map.addControl(control);
-        }
-
-        // return control
-        return control;
-    },
-
-    /**
-     * Method: removeFeature
-     * remove layer feature from table key
-     *
-     */
-    removeFeature: function(id) {
-        var arr = this.featureArray;
-        var layer = this.layer();
-        var resultLayer = this.resultLayer();
-        var addon = this;
-        var o = Ext.getCmp(id) ? Ext.getCmp(id) : false;
-        if (o) {
-            o.setValue("");
-        }
-
-        if (arr[id] && arr[id] != "") {
-            var point = layer.getFeatureById(arr[id]);
-            layer.removeFeatures(point);
-            arr[id] = "";
-            if (layer.features.length > 1) {
-                GEOR.Addons.traveler.getRoad(addon);
-            } else {
-                resultLayer.removeAllFeatures();
-                if(Ext.getCmp("trav_nav")){
-                	Ext.getCmp("trav_nav").hide();
+                "mouseout": function(button) {
+                    if (!button.pressed) {
+                        button.setIconClass("route_walkBtn");
+                    }
+                },
+                "toggle": function(button) {
+                    if (button.pressed) {
+                        button.setIconClass("walk-pressed");
+                        GEOR.Addons.Traveler.route.getRoad(addon);
+                    } else {
+                        button.setIconClass("route_walkBtn");
+                    }
                 }
             }
-
-        }
-    },
-
-    /**
-     * Method: onBanSelect
-     * get BAN result to feature
-     *
-     */
-    onBanSelect: function(combo, record) {
-        var geom, toCoordX, toCoordY, from, to, geom, fromCoordX, fromCoordY, point, feature;
-
-        if (this.layer()) {
-            var vecId = this.featureArray[combo.id] ? this.featureArray[combo.id] : false;
-
-            if (vecId && vecId != "" && combo.id) {
-                this.removeFeature(combo.id);
+        }, {
+            xtype: "button",
+            iconCls: "car-pressed",
+            id: "route_carBtn",
+            tooltip: OpenLayers.i18n("Traveler.route.car.tooltip"),
+            enableToggle: true,
+            pressed: true,
+            height: 35,
+            toggleGroup: "modeBtn",
+            width: 35,
+            cls: "carStyle",
+            listeners: {
+                "mouseover": function(button) {
+                    if (!button.pressed) {
+                        button.setIconClass("car-over");
+                    }
+                },
+                "mouseout": function(button) {
+                    if (!button.pressed) {
+                        button.setIconClass("route_carBtn");
+                    }
+                },
+                "toggle": function(button) {
+                    if (button.pressed) {
+                        button.setIconClass("car-pressed");
+                        GEOR.Addons.Traveler.route.getRoad(addon);
+                    } else {
+                        button.setIconClass("route_carBtn");
+                    }
+                }
             }
+        }]
+    });
+};
 
+/**
+ * Method: removeFeature
+ * remove layer feature and hide ext element text
+ *
+ */
+GEOR.Addons.Traveler.route.removeFeature = function(addon, id) {
+    var arr = addon.featureArray;
+    var layer = addon.routePoints;
+    var resultLayer = addon.routeLines;
+    var addon = addon;
+    var extCmp = Ext.getCmp(id) ? Ext.getCmp(id) : false;
+    if (extCmp) {
+        extCmp.setValue("");
+    }
+    if (arr[id] && arr[id] != "") {
+        var point = layer.getFeatureById(arr[id]);
+        layer.removeFeatures(point);
+        arr[id] = "";
+        if (layer.features.length > 1) {
+            GEOR.Addons.Traveler.route.getRoad(addon);
+        } else {
+            addon.routeLines.removeAllFeatures();
+            if (Ext.getCmp("route_btnNav")) {
+                Ext.getCmp("route_btnNav").hide();
+            }
+        }
+    }
+};
 
-            from = new OpenLayers.Projection("EPSG:4326"), // default GeoJSON SRS return by the service 
-                to = this.map.getProjectionObject();
-
-            //get coordinates from GeoJson
-            fromCoordX = record.json.geometry.coordinates[0];
-            fromCoordY = record.json.geometry.coordinates[1];
-
-            // get json geometry transform to map projection
-            geom = new OpenLayers.Geometry.Point(fromCoordX, fromCoordY).transform(from, to);
-
-            // create point from from transform geometry
-            point = new OpenLayers.Geometry.Point(geom.x, geom.y);
-            feature = new OpenLayers.Feature.Vector(point);
-
-            // update table
-            this.featureArray[combo.id] = feature.id;
-
-            // add point feature to layer and zoom on    
-            this.layer().addFeatures(feature);
+/**
+ * Insert new field set in window
+ * 
+ */
+GEOR.Addons.Traveler.route.insertFset = function(addon) {
+        var panel = addon.routePanel;
+        var window = addon.routeWindow;
+        if (panel) {
+            var idx = panel.items && panel.items.length > 2 ? panel.items.length - 4 : false;
+            if (idx) {
+                // add cross button to delete step
+                panel.insert(idx, GEOR.Addons.Traveler.route.addStep(addon, true, false));
+                // force refresh panel
+                panel.doLayout();
+            }
         }
     },
 
     /**
-     * Method: addStep
-     *Add new step on route
-     *
-     * Parameters:
-     * isStart - {boolean} true or false to set start point
-     * delBtn  - {boolean} true or false to display cross icon
+     * Refresh window
+     * 
      */
+    GEOR.Addons.Traveler.route.refresh = function(addon) {
+        var map = addon.map;
+        addon.routeWindow = GEOR.Addons.Traveler.route.routeWindow(addon);
 
-    addStep: function(isStart, delBtn, idFset) {
+        if (addon.routeControl) {
+            addon.routeControl.destroy();
+        }
 
-        var addStr = "add_";
-        var rmStr = "rm_";
-        var gpsStr = "gps_";
-        var inputStr = "field_";
+        if (Ext.getCmp("route_window")) {
+            return Ext.getCmp("route_window").show();
+        }
 
+    },
+
+    /**
+     * Ajout d'un point de passage
+     */
+    GEOR.Addons.Traveler.route.addStep = function(addon, isStart, delBtn, idFset) {
+        var tr = OpenLayers.i18n;
         var travelerAddon = this;
-        var layer = this.layer();
-        var featureArray = this.featureArray;
+        var layer = addon.routePoints;
+        var featureArray = addon.featureArray;
+        var window = addon.routeWindow ? addon.routeWindow : false;
+        var panel = addon.routePanel ? addon.routePanel : false;
+        var control = addon.routeControl;
 
-        if (this.win) {
-            var window = this.win;
-        }
+        var map = addon.map;
 
-        if (this.panel) {
-            var panel = this.panel;
-        }
-
-        var map = this.map;
-
-        var options = this.options;
+        var options = addon.options;
 
         var banStore = new Ext.data.JsonStore({
             proxy: new Ext.data.HttpProxy({
-                url: "https://api-adresse.data.gouv.fr/search/?", // set service URL in config.json file, more informations in README
+                url: options.BAN_URL,
                 method: 'GET',
                 autoLoad: true
             }),
@@ -274,7 +329,7 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
             listeners: {
                 "beforeload": function(q) {
                     banStore.baseParams.q = banStore.baseParams["query"];
-                    banStore.baseParams.limit = 5; // number of result is default set to 5, change it in config.json file, more informations in README
+                    banStore.baseParams.limit = options.BAN_RESULT ? options.BAN_RESULT : 5;
                     delete banStore.baseParams["query"];
                 }
             }
@@ -288,18 +343,10 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
         });
 
         // create ID from fSet
-        var addId = addStr + fSet.id;
-        var gpsId = gpsStr + fSet.id;
-        var rmId = rmStr + fSet.id;
-        var inputId = inputStr + fSet.id;
-
-        function removePoint(layer, id, arr) {
-            // delete point
-            if (arr[id] && arr[id] != "") {
-                var point = layer.getFeatureById(arr[id]);
-                layer.removeFeatures(point);
-            }
-        }
+        var addId = "add_" + fSet.id;
+        var gpsId = "gps_" + fSet.id;
+        var rmId = "rm_" + fSet.id;
+        var inputId = "field_" + fSet.id;
 
         // create field and buttons
         var banField = new Ext.form.CompositeField({
@@ -309,9 +356,9 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 xtype: "combo",
                 id: inputId,
                 anchor: 200,
-                emptyText: OpenLayers.i18n("traveler.ban.emptytext"),
+                emptyText: tr("Traveler.route.ban.emptytext"),
                 fieldClass: "fBan",
-                tooltip: OpenLayers.i18n("traveler.ban.tooltip"),
+                tooltip: tr("Traveler.route.ban.tooltip"),
                 hideLabel: true,
                 hideTrigger: true,
                 store: banStore,
@@ -320,28 +367,44 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 pageSize: 0,
                 minChars: 5,
                 listeners: {
-                    "select": this.onBanSelect,
+                    "select": function(combo, record) {
+                        var geom, toCoordX, toCoordY;
+                        var from = new OpenLayers.Projection("EPSG:4326"); // default GeoJSON SRS return by the service 
+                        var to = map.getProjectionObject();
+                        if (layer) {
+                            if (featureArray[combo.id] && combo.id) {
+                                GEOR.Addons.Traveler.route.removeFeature(addon, combo.id);
+                            }
+                            var fromCoordX = record.json.geometry.coordinates[0]; // get original coordinates
+                            var fromCoordY = record.json.geometry.coordinates[1];
+                            var geom = new OpenLayers.Geometry.Point(fromCoordX, fromCoordY).transform(from, to); // transform geom to map srs
+                            var point = new OpenLayers.Geometry.Point(geom.x, geom.y); // create point
+                            var feature = new OpenLayers.Feature.Vector(point);
+                            layer.addFeatures(feature); // add points to map
+                            featureArray[combo.id] = feature.id; // update point - id table
+                        }
+                    },
                     scope: this
                 }
             }, {
                 xtype: "button",
                 iconCls: "gpsIcon",
                 id: gpsId,
-                tooltip: OpenLayers.i18n("traveler.drawpoint.tooltip"),
+                tooltip: tr("Traveler.route.drawpoint.tooltip"),
                 cls: "actionBtn",
                 handler: function(button) {
                     var idBtn = button.id;
-                    var pointControl = travelerAddon.drawControl();
+                    var control = addon.routeControl;
                     // add point by click
-                    if (pointControl && map) {
-                        if (!pointControl.active) {
+                    if (control && map) {
+                        if (!control.active) {
                             // active control
-                            pointControl.activate();
+                            control.activate();
                             // use to change value display in field
-                            travelerAddon.lastFieldUse = inputId;
-                            travelerAddon.removeFeature(inputId);
+                            addon.lastFieldUse = inputId;
+                            GEOR.Addons.Traveler.route.removeFeature(addon, inputId);
                         } else {
-                            pointControl.deactivate();
+                            control.deactivate();
                         }
                     }
                 }
@@ -349,37 +412,36 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 xtype: "button",
                 iconCls: "addIcon",
                 id: addId,
-                tooltip: OpenLayers.i18n("traveler.addpoint.tooltip"),
+                tooltip: tr("Traveler.route.addpoint.tooltip"),
                 cls: "actionBtn",
                 hidden: isStart,
                 handler: function() {
-                    if (Ext.getCmp("wayPointPanel")) {
-                        var panel = Ext.getCmp("wayPointPanel");
-                        travelerAddon.insertFset(panel, window);
+                    if (Ext.getCmp("route_panelWp")) {
+                        var panel = Ext.getCmp("route_panelWp");
+                        GEOR.Addons.Traveler.route.insertFset(addon, panel, window);
                     }
                 }
             }, {
                 xtype: "button",
                 iconCls: "rmIcon",
                 id: rmId,
-                tooltip: OpenLayers.i18n("traveler.removepoint.tooltip"),
+                tooltip: tr("Traveler.route.removepoint.tooltip"),
                 hidden: delBtn,
                 cls: "actionBtn",
                 handler: function(button) {
                     if (fSet) {
                         fSet.destroy();
-                        travelerAddon.resizeShadow();
                         // remove associated point if exist
-                        travelerAddon.removeFeature(inputId);
-                        if (travelerAddon.drawControl().active) {
-                            travelerAddon.drawControl().deactivate();
+                        GEOR.Addons.Traveler.route.removeFeature(addon, inputId);
+                        if (control.active) {
+                            control.deactivate();
                         }
                     }
                 }
             }]
         });
 
-        var comboRef = GEOR.Addons.traveler.referentials(travelerAddon, fSet, inputId);
+        var comboRef = GEOR.Addons.Traveler.referential.createForRoute(addon, fSet, inputId);
 
         // if no warehouse is set to find layer, deactive checkBox
         var cbDisplay = false;
@@ -414,482 +476,380 @@ GEOR.Addons.traveler = Ext.extend(GEOR.Addons.Base, {
                 }
             }
         });
-
         // insert checkbox to select data type
         fSet.insert(0, checkItem);
 
         return fSet;
-    },
+    };
 
-    /**
-     * Method: resizeShadow
-     *
-     * Parameters:
-     * panel - {Ext.form.Panel} panel to contain field and search options
-     * window - {Ext.form.Window} main window use to calculate route
-     * method - {function} addon method to add new fieldSet
-     */
+/**
+ * Création de la requête
+ */
 
-    resizeShadow: function() {
-        if (this.win()) {
-            this.win().syncShadow()
-        }
-    },
-
-    /**
-     * Method: resetWindow
-     * refresh window when user click on refresh button
-     */
-
-    refresh: function() {
-        if (Ext.getCmp("travWindow")) {
-            Ext.getCmp("travWindow").close();
-        }
-        
-        if(GeoExt.MapPanel.guess().map.getControlsBy("id", "traveler_point_ctrl").length == 1){
-        	GeoExt.MapPanel.guess().map.getControlsBy("id", "traveler_point_ctrl")[0].destroy();
-        }
-        
-        if (this.win) {
-            this.win();
-        }
-        
-        if (Ext.getCmp("travWindow")) {
-            return Ext.getCmp("travWindow").show();
-        }
-        
-    },
-    
-    
-    /**
-     * Method: createPanel
-     * Generate panel to populate window with items as fields and params
-     */
-    createPanel: function(){
-    	
-    	var addon = this;
-    	
-    	if(Ext.getCmp("wayPointPanel")){
-    		Ext.getCmp("wayPointPanel").destroy();
-    	} else {    		    
-	        return new Ext.Panel({
-	            autoScroll: true,
-	            hidden: false,
-	            id: "wayPointPanel",
-	            items: [addon.modeBtn(), {
-	                xtype: "fieldset",
-	                collapsible: true,
-	                collapsed: true,
-	                title: OpenLayers.i18n("traveler.options.title"),
-	                cls: "fsOptions",
-	                items: [{
-	                    xtype: "compositefield",
-	                    hideLabel: true,
-	                    id: "methodRadio",
-	                    items: [{
-	                        xtype: "radio",
-	                        checked: true,
-	                        hideLabel: true,
-	                        boxLabel: OpenLayers.i18n("traveler.options.fast"),
-	                        id: "timeRadio",
-	                        value: "TIME",
-	                        name: "method",
-	                        listeners: {
-	                            check: function(c) {
-	                                GEOR.Addons.traveler.getRoad(addon);
-	                            },
-	                            scope: this
-	                        }
-	                    }, {
-	                        xtype: "spacer",
-	                        width: "5"
-	                    }, {
-	                        xtype: "radio",
-	                        hideLabel: true,
-	                        id: "distanceRadio",
-	                        name: "method",
-	                        value: "DISTANCE",
-	                        boxLabel: OpenLayers.i18n("traveler.options.distance"),
-	                        listeners: {
-	                            check: function(c) {
-	                                GEOR.Addons.traveler.getRoad(addon);
-	                            },
-	                            scope: this
-	                        }
-	                    }, {
-	                        xtype: "spacer",
-	                        height: "25"
-	                    }]
-	                }, {
-	                    xtype: "compositefield",
-	                    id: "excludeCheck",
-	                    hideLabel: true,
-	                    items: [{
-	                        xtype: "checkbox",
-	                        tooltip: OpenLayers.i18n("traveler.options.toll.tooltip"),
-	                        boxLabel: OpenLayers.i18n("traveler.options.checkbox.toll"),
-	                        id: "tollRadio",
-	                        labelWidth: 20,
-	                        hideLabel: true,
-	                        value: "Toll",
-	                        listeners: {
-	                            check: function(c) {
-	                                GEOR.Addons.traveler.getRoad(addon);
-	                            },
-	                            scope: this
-	                        }
-	                    }, {
-	                        xtype: "checkbox",
-	                        boxLabel: OpenLayers.i18n("traveler.options.checkbox.bridge"),
-	                        tooltip: OpenLayers.i18n("traveler.options.bridge.tooltip"),
-	                        id: "bridgeRadio",
-	                        hideLabel: true,
-	                        value: "Bridge",
-	                        listeners: {
-	                            check: function(c) {
-	                                GEOR.Addons.traveler.getRoad(addon);
-	                            },
-	                            scope: this
-	                        }
-	                    }, {
-	                        xtype: "checkbox",
-	                        boxLabel: OpenLayers.i18n("traveler.options.checkbox.tunels"),
-	                        tooltip: OpenLayers.i18n("traveler.options.tunnels.tooltip"),
-	                        id: "tunnelRadio",
-	                        hideLabel: true,
-	                        value: "Tunnel",
-	                        listeners: {
-	                            check: function(c) {
-	                                GEOR.Addons.traveler.getRoad(addon);
-	                            },
-	                            scope: this
-	                        }
-	                    }]
-	                }],
-	                listeners: {
-	                    "collapse": function() {
-	                        if (addon.win()) {
-	                        	addon.win().syncShadow();
-	                        }
-	                    },
-	                    "expand": function() {
-	                        if (addon.win()) {
-	                        	addon.win().syncShadow();
-	                        }
-	                    }
-	                }
-	            }, {
-	                xtype: "spacer",
-	                height: "10"
-	            }, {
-	                xtype: "fieldset",
-	                title: OpenLayers.i18n("traveler.result.title"),
-	                hidden: true,
-	                id: "trav_result",
-	                collapsible: true,
-	                collapsed: true,
-	                cls: "fsInfo",
-	                items: [{
-	                    xtype: "textfield",
-	                    id: "trav_dist",
-	                    width: 60,
-	                    fieldLabel: OpenLayers.i18n("traveler.result.distance"),
-	                    readOnly: true,
-	                    style: {
-	                        borderWidth: "0px"
-	                    },
-	                    labelStyle: 'font-size:11px;'
-	                }, {
-	                    xtype: "textfield",
-	                    width: 60,
-	                    id: "trav_time",
-	                    fieldLabel: OpenLayers.i18n("traveler.result.time"),
-	                    readOnly: true,
-	                    style: {
-	                        borderWidth: "0px"
-	                    },
-	                    labelStyle: 'font-size:11px;'
-	                }],
-	                listeners: {
-	                    "collapse": function() {
-	                        if (addon.win()) {
-	                        	addon.win().syncShadow();
-	                        }
-	                    },
-	                    "expand": function() {
-	                        if (addon.win()) {
-	                        	addon.win().syncShadow();
-	                        }
-	                    },
-	                    "show": function(f) {
-	                        if (f.collapsed) {
-	                            f.expand();
-	                        }
-	                    }
-	                }
-	            }],
-	            listeners: {
-	                "added": function(panel) {
-	                    panel.insert(1, addon.addStep(true, true, "startPoint"));
-	                    panel.insert(2, addon.addStep(false, true, "endPoint"));
-	                }
-	            }
-	        }); 
-        }   	
-    },
-
-
-    /**
-     * Method: win
-     * Generate window to set params and way point
-     */
-
-    win: function() {
-        var addon = this;
-
-        if (Ext.getCmp("travWindow")) {
-            return Ext.getCmp("travWindow");
-        } else {
-            return new Ext.Window({
-                title: OpenLayers.i18n("traveler.window_title"),
-                constrainHeader: true,
-                autoHeight: true,
-                width: 290,
-                id: "travWindow",
-                autoScroll: true,
-                closable: true,
-                closeAction: "hide",
-                resizable: false,
-                collapsible: true,
-                items: [addon.createPanel()],
-                buttonAlign: 'center',
-                fbar: [{
-                    iconCls: "refresh",
-                    tooltip: OpenLayers.i18n("traveler.refresh.tooltip"),
-                    id: "trav_refresh",
-                    cls: "actionBtn",
-                    handler: function() {
-                        addon.refresh();
-                    }
-                }, {
-                    iconCls: "navIcon",
-                    cls: "actionBtn",
-                    hidden:true,
-                    id:"trav_nav",
-                    tooltip: OpenLayers.i18n("traveler.print.tooltip"),
-                    handler:function(){
-                    	if(GEOR.Addons.traveler.navInfos){
-                    		// call pdf -> see getDocument method in photos obliques
-                    	}
-                    }
-                }],
-                listeners: {
-                	"show": function(win) {
-                		if(GeoExt.MapPanel.guess().map) {
-                			win.alignTo(GeoExt.MapPanel.guess().map.div,"tl",[0,100],false);
-                		}
-                		
-                	},
-                    "hide": function() {
-                        // remove all features
-                        if (addon.layer()) {
-                            addon.layer().removeAllFeatures();
-                        }
-                        if (addon.resultLayer()) {
-                            addon.resultLayer().removeAllFeatures();
-                        }
-                        
-                        if(Ext.getCmp("trav_nav")){
-                        	Ext.getCmp("trav_nav").hide();
-                        }
-                    }
-                }
-            });
-        }
-    },
-
-    /**
-     * Method: insertFset
-     *
-     * Parameters:
-     * panel - {Ext.form.Panel} panel to contain field and search options
-     * window - {Ext.form.Window} main window use to calculate route
-     * method - {function} addon method to add new fieldSet
-     */
-    insertFset: function(panel, window) {
-
-        var addon = this;
-
-        if (panel) {
-            var idx = panel.items && panel.items.length > 2 ? panel.items.length - 4 : false;
-            if (idx) {
-                // add cross button to delete step
-                panel.insert(idx, addon.addStep(true, false));
-                // force refresh panel
-                panel.doLayout();
-                this.resizeShadow();
+GEOR.Addons.Traveler.route.getRoad = function(addon) {
+    var wPCoord = "";
+    var method = [];
+    var exclusions = [];
+    var graphName;
+    var settings = new Object();
+    var url = addon.options.ROUTE_SERVICE;
+    settings.origin = ""; // request settings
+    settings.destination = "";
+    settings.srs = addon.map.getProjectionObject();;
+    // parse key value table
+    for (var key in addon.featureArray) {
+        var a = addon.featureArray[key];
+        if (addon.featureArray.hasOwnProperty(key) && addon.routePoints.getFeatureById(a)) {
+            var geom = addon.routePoints.getFeatureById(a).geometry;
+            var c = geom.x + "," + geom.y;
+            if (key.indexOf("start") > -1) {
+                // get origin param
+                settings.origin = c;
+            } else if (key.indexOf("end") > -1) {
+                // get destination param
+                settings.destination = c;
+            } else {
+                // stock others waypoints
+                wPCoord = wPCoord + c + ";";
             }
         }
-    },
-
-    /**
-     * Method: init
-     *
-     * Parameters:
-     * record - {Ext.data.record} a record with the addon parameters
-     */
-    init: function(record) {
-        // use to call addon's scope
-        var travelerAddon = this;
-        
-        // refresh addon when wmc is restore
-        GEOR.wmc.events.on("aftercontextrestore", function(){
-            travelerAddon.refresh();
-        });
-
-        // do not load addon if user is not connect to map viewer
-        if (GEOR.config.ANONYMOUS) {
-            return Ext.Msg.alert(
-                OpenLayers.i18n("traveler.msg.noright"),
-                travelerAddon.options.RIGHT_MSG);
-        }
-
-
-        // create wgs84 projection
-        var from = new OpenLayers.Projection("EPSG:4326")
-
-        // get map projection    	
-        var to = this.map.getProjectionObject();
-
-        // create control to draw point
-        this.drawControl();
-
-        // create buttons to select type of transport
-        this.modeBtn = function() {
-            return new Ext.form.CompositeField({
-                // first window's panel
-                cls: "cpMode",
-                items: [{
-                    xtype: "button",
-                    height: 35,
-                    id: "walkBtn",
-                    width: 35,
-                    tooltip: OpenLayers.i18n("traveler.method.walk.tooltip"),
-                    enableToggle: true,
-                    toggleGroup: "modeBtn",
-                    iconCls: "walkBtn",
-                    cls: "walkStyle",
-                    listeners: {
-                        "mouseover": function() {
-                            if (!this.pressed) {
-                                this.setIconClass("walk-over");
-                            }
-                        },
-                        "mouseout": function() {
-                            if (!this.pressed) {
-                                this.setIconClass("walkBtn");
-                            }
-                        },
-                        "toggle": function() {
-                            if (this.pressed) {
-                                this.setIconClass("walk-pressed");
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-                            } else {
-                                this.setIconClass("walkBtn");
-                            }
-                        }
-                    }
-                }, {
-                    xtype: "button",
-                    iconCls: "car-pressed",
-                    id: "carBtn",
-                    tooltip: OpenLayers.i18n("traveler.method.car.tooltip"),
-                    enableToggle: true,
-                    pressed: true,
-                    height: 35,
-                    toggleGroup: "modeBtn",
-                    width: 35,
-                    cls: "carStyle",
-                    listeners: {
-                        "mouseover": function() {
-                            if (!this.pressed) {
-                                this.setIconClass("car-over");
-                            }
-                        },
-                        "mouseout": function() {
-                            if (!this.pressed) {
-                                this.setIconClass("carBtn");
-                            }
-                        },
-                        "toggle": function() {
-                            if (this.pressed) {
-                                this.setIconClass("car-pressed");
-                                GEOR.Addons.traveler.getRoad(travelerAddon);
-                            } else {
-                                this.setIconClass("carBtn");
-                            }
-                        }
-                    }
-                }]
-            });
-        };        
-
-        if (this.target) {
-            // create a button to be inserted in toolbar:
-            this.components = this.target.insertButton(this.position, {
-                xtype: "button",
-                iconCls: "addon-traveler",
-                handler: this._onCheckchange,
-                scope: this
-            });
-            this.target.doLayout();
-        } else {
-            // create a menu item for the "tools" menu:
-            this.item = new Ext.menu.CheckItem({
-                text: this.getText(record),
-                qtip: this.getQtip(record),
-                iconCls: "addon-traveler",
-                handler: this._onCheckchange,
-                scope: this
-            });
-        }
-    },
-
-    /**
-     * Method: _onCheckchange Callback on checkbox state changed
-     * when called from toolbar button, checked is an mouseevent object
-     * when called from tools menu checkitem or manually from openToolbarOnLoad, checked is a boolean
-     */
-
-    _onCheckchange: function() {
-        if (this.win().isVisible()) {
-            this.win().hide();
-        } else {
-            this.win().show();
-        }
-    },
-
-    /**
-     * Method: destroy
-     * Called by GEOR_tools when deselecting this addon
-     */
-    destroy: function() {
-        if (this.win()) {
-            this.win().destroy();
-        }
-        
-    	if(GEOR.Addons.traveler.navInfos){
-    		GEOR.Addons.traveler.navInfos = null;
-    	}
-
-        if (this.layer()) {
-            this.layer().destroy();
-        }
-
-        if (this.resultLayer()) {
-            this.resultLayer().destroy();
-        }
-
-        GEOR.Addons.Base.prototype.destroy.call(this);
+    };
+    settings.waypoints = wPCoord; // waypoints param    
+    if (Ext.getCmp("route_carBtn").pressed) { // get graphName param
+        settings.graphName = "Voiture";
+    } else {
+        settings.graphName = "Pieton";
     }
-});
+    var checkItems = Ext.getCmp("route_excludeCheck") ? Ext.getCmp("route_excludeCheck").items.items : false; // get exclusions params
+    if (checkItems && checkItems.length > 0) {
+        checkItems.forEach(function(el) {
+            if (Ext.getCmp(el.id) && Ext.getCmp(el.id).checked) {
+                exclusions.push(Ext.getCmp(el.id).value);
+            };
+        });
+    }
+    // get method param
+    if (Ext.getCmp("route_radioTime").checked) {
+        settings.method = "TIME";
+    } else {
+        settings.method = "DISTANCE";
+    }
+    // parse geom from service to display result and zoom on bound
+    function parseWKT(geom, layer, map, json) {
+        var road;
+        var bounds;
+        // to display only one result
+        layer.removeAllFeatures();
+        if (Ext.getCmp("route_btnNav")) {
+            Ext.getCmp("route_btnNav").hide();
+        }
+        // get geom from WKT and create feature
+        var wkt = new OpenLayers.Format.WKT();
+        var features = wkt.read(geom);
+        layer.addFeatures(features);
+        if (layer.getFeatureById(features.id)) {
+            road = layer.getFeatureById(features.id);
+        }
+        if (road) {
+            if (road.constructor != Array) {
+                road = [road];
+            }
+            for (var i = 0; i < road.length; ++i) {
+                // get feature bound if not exist
+                if (!bounds) {
+                    bounds = road[i].geometry.getBounds();
+                } else {
+                    bounds.extend(road[i].geometry.getBounds());
+                }
+            }
+            // set point layer to front
+            var zIndex = layer.getZIndex() ? layer.getZIndex() : false;
+            if (zIndex) {
+                addon.routePoints.setZIndex(zIndex + 1);
+            }
+            // zoom to result extent
+            addon.map.zoomToExtent(bounds);
+            // display time and distance informations
+            if (json.duration || json.distance) {
+                var tCut = json.duration.split(":");
+                var tStr = tCut[0] + " h " + tCut[1] + " min";
+
+                if (Ext.getCmp("route_resFset")) {
+                    Ext.getCmp("route_resFset").show();
+                }
+
+                if (Ext.getCmp("route_distTexF") && json.distance) {
+                    Ext.getCmp("route_distTexF").setValue(json.distance);
+                }
+
+                if (Ext.getCmp("route_timeTexF") && tStr) {
+                    Ext.getCmp("route_timeTexF").setValue(tStr);
+                }
+            }
+        } else {
+            alert('Bad WKT');
+        }
+    }
+    if (settings.origin && settings.origin != "" && settings.destination && settings.destination != "") {
+        // display load item
+        GEOR.waiter.show();
+        // fire request
+        var request = new OpenLayers.Request.GET({
+            url: url,
+            params: settings,
+            async: true,
+            callback: function(request) {
+                if (request.responseText) {
+                    var decode = JSON.parse(request.responseText);
+                    // display result on map and get navigation infos
+                    if (decode && decode.geometryWkt) {
+                        // get geom from json 
+                        var geomWKT = decode.geometryWkt;
+                        // create route from WKT 
+                        parseWKT(geomWKT, addon.routeLines, addon.map, decode);
+                        // get navigation steps
+                        if (decode.legs && decode.legs.length > 0) {
+                            var steps = [];
+                            var section = decode.legs;
+
+                            section.forEach(function(el, index) {
+                                el.steps.forEach(function(el, index) {
+                                    steps.push(el);
+                                })
+                            })
+                            GEOR.Addons.Traveler.route.navInfos = steps;
+                        }
+                    }
+                    // get navigation details from json
+                    if (decode.legs && decode.legs.length > 0) {
+                        var steps = [];
+                        var section = decode.legs;
+                        section.forEach(function(el, index) {
+                            el.steps.forEach(function(el, index) {
+                                steps.push(el);
+                            })
+                        })
+                        if (steps.length > 0) {
+                            if (Ext.getCmp("route_btnNav")) {
+                                Ext.getCmp("route_btnNav").show();
+                            }
+                        }
+                    }
+                } else {
+                    console.log("Request fail");
+                }
+                GEOR.waiter.hide();
+            }
+        });
+    } else {
+        addon.routeLines.removeAllFeatures();
+    }
+};
+
+/**
+ * Create panel
+ */
+GEOR.Addons.Traveler.route.createPanel = function(addon) {
+    if (Ext.getCmp("route_panelWp")) {
+        Ext.getCmp("route_panelWp").destroy();
+    } else {
+        return new Ext.Panel({
+            autoScroll: true,
+            hidden: false,
+            id: "route_panelWp",
+            items: [GEOR.Addons.Traveler.route.modeBtn(addon), {
+                xtype: "fieldset",
+                collapsible: true,
+                collapsed: true,
+                cls: "fsOptions",
+                items: [{
+                    xtype: "compositefield",
+                    hideLabel: true,
+                    id: "route_radioMethod",
+                    items: [{
+                        xtype: "radio",
+                        checked: true,
+                        hideLabel: true,
+                        boxLabel: OpenLayers.i18n("Traveler.route.options.fast"),
+                        id: "route_radioTime",
+                        value: "TIME",
+                        name: "method",
+                        listeners: {
+                            check: function(c) {
+                                GEOR.Addons.Traveler.route.getRoad(addon);
+                            },
+                            scope: this
+                        }
+                    }, {
+                        xtype: "spacer",
+                        width: "5"
+                    }, {
+                        xtype: "radio",
+                        hideLabel: true,
+                        id: "route_radioDist",
+                        name: "method",
+                        value: "DISTANCE",
+                        boxLabel: OpenLayers.i18n("Traveler.route.options.distance"),
+                        listeners: {
+                            check: function(c) {
+                                GEOR.Addons.Traveler.route.getRoad(addon);
+                            },
+                            scope: this
+                        }
+                    }, {
+                        xtype: "spacer",
+                        height: "25"
+                    }]
+                }, {
+                    xtype: "compositefield",
+                    id: "route_excludeCheck",
+                    hideLabel: true,
+                    items: [{
+                        xtype: "checkbox",
+                        tooltip: OpenLayers.i18n("Traveler.route.options.toll.tooltip"),
+                        boxLabel: OpenLayers.i18n("Traveler.route.options.checkbox.toll"),
+                        id: "route_tollRadio",
+                        labelWidth: 20,
+                        hideLabel: true,
+                        value: "Toll",
+                        listeners: {
+                            check: function(c) {
+                                GEOR.Addons.Traveler.route.getRoad(addon);
+                            },
+                            scope: this
+                        }
+                    }, {
+                        xtype: "checkbox",
+                        boxLabel: OpenLayers.i18n("Traveler.route.checkbox.bridge"),
+                        tooltip: OpenLayers.i18n("Traveler.route.bridge.tooltip"),
+                        id: "route_bridgeRadio",
+                        hideLabel: true,
+                        value: "Bridge",
+                        listeners: {
+                            check: function(c) {
+                                GEOR.Addons.Traveler.route.getRoad(addon);
+                            },
+                            scope: this
+                        }
+                    }, {
+                        xtype: "checkbox",
+                        boxLabel: OpenLayers.i18n("Traveler.route.checkbox.tunels"),
+                        tooltip: OpenLayers.i18n("Traveler.route.tunnels.tooltip"),
+                        id: "route_tunnelRadio",
+                        hideLabel: true,
+                        value: "Tunnel",
+                        listeners: {
+                            check: function(c) {
+                                GEOR.Addons.Traveler.route.getRoad(addon);
+                            },
+                            scope: this
+                        }
+                    }]
+                }]
+            }, {
+                xtype: "spacer",
+                height: "10"
+            }, {
+                xtype: "fieldset",
+                title: OpenLayers.i18n("Traveler.route.result.title"),
+                hidden: true,
+                id: "route_resFset",
+                collapsible: true,
+                collapsed: true,
+                cls: "fsInfo",
+                items: [{
+                    xtype: "textfield",
+                    id: "route_distTexF",
+                    width: 60,
+                    fieldLabel: OpenLayers.i18n("traveler.result.distance"),
+                    readOnly: true,
+                    style: {
+                        borderWidth: "0px"
+                    },
+                    labelStyle: 'font-size:11px;'
+                }, {
+                    xtype: "textfield",
+                    width: 60,
+                    id: "route_timeTexF",
+                    fieldLabel: OpenLayers.i18n("traveler.result.time"),
+                    readOnly: true,
+                    style: {
+                        borderWidth: "0px"
+                    },
+                    labelStyle: 'font-size:11px;'
+                }]
+            }],
+            listeners: {
+                "added": function(panel) {
+                	addon.routePanel = panel;
+                    panel.insert(1, GEOR.Addons.Traveler.route.addStep(addon, true, true, "startPoint"));
+                    panel.insert(2, GEOR.Addons.Traveler.route.addStep(addon, false, true, "endPoint"));
+                }
+            }
+        });
+    }
+};
+
+GEOR.Addons.Traveler.route.routeWindow = function(addon) {
+    var tr = OpenLayers.i18n;
+    var map = addon.map;
+    if (Ext.getCmp("route_window")) {
+        Ext.getCmp("route_window").destroy();
+    }
+    var window = new Ext.Window({
+        title: tr("Traveler.route.windowtitle"),
+        constrainHeader: true,
+        autoHeight: true,
+        shadow: false,
+        width: 290,
+        id: "route_window",
+        autoScroll: true,
+        closable: true,
+        closeAction: "hide",
+        resizable: false,
+        collapsible: true,
+        items: [GEOR.Addons.Traveler.route.createPanel(addon)],
+        buttonAlign: 'center',
+        fbar: [{
+            iconCls: "refresh",
+            tooltip: tr("Traveler.route.refresh.tooltip"),
+            id: "route_btnRefresh",
+            cls: "actionBtn",
+            handler: function() {
+                GEOR.Addons.Traveler.route.refresh(addon);
+            }
+        }, {
+            iconCls: "navIcon",
+            cls: "actionBtn",
+            hidden: true,
+            id: "route_btnNav",
+            tooltip: tr("Traveler.route.print.tooltip"),
+            handler: function() {
+                if (GEOR.Addons.Traveler.route.navInfos) {
+                    // call pdf -> see getDocument method in photos obliques
+                }
+            }
+        }],
+        listeners: {
+            "show": function(win) {
+                if (map) { // window location
+                    win.alignTo(map.div, "tl", [0, 100], false);
+                }
+            },
+            "hide": function() {
+                if (addon.routePoints) { // remove all features
+                    addon.routePoints.removeAllFeatures();
+                }
+                if (addon.routeLines) {
+                    addon.routeLines.removeAllFeatures();
+                }
+
+                if (Ext.getCmp("route_btnNav")) {
+                    Ext.getCmp("route_btnNav").hide();
+                }
+            }
+        }
+    });
+
+    return window;
+};

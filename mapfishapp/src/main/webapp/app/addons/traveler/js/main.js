@@ -5,7 +5,7 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      * Method: map
      * get current map     
      */
-    map: this.map,
+    map: this.map,    
     
     /**
      * Method: loader
@@ -17,14 +17,20 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 
     /**
      * Method: isoControl
-     * isochrone control to draw point     
+     * isochrone control to draw isochrone start points     
      */
 	isoControl: null,
+	
+	/**
+     * Method: isoControl
+     * isochrone control to draw route start points     
+     */
+	routeControl: null,
     /**
      * Method: featureRouteArray
      * create object containing way point
      */      
-    featureRouteArray: new Object(),
+    featureArray: new Object(),
     
     /**
      * Method: featureIsoArray
@@ -51,42 +57,12 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
     isoResLayer : null,
            
     /**
-     * Method: routeField
-     * get last field use to localize last way point
+     * Method: lastFieldUse
+     * get last field use to create link between point and field id to destroy point when field is remove
      */
-    routeField: null,  
+    lastFieldUse: null,
     
-    /**
-     * Method: removeFeature
-     * Remove layer feature from given layers and given table key
-     * Parameters: 
-     *    	cmpId - {string} id of ExtJs element
-     *      layer - {OpenLayers.Layer.Vector} layer use to display features points
-     *      resultLayer - OpenLayers.Layer.Vector} layer use to display results features
-     * 		arr - {Object} JS object containing field id and corresponding feature id 
-     */
-    removeFeature: function(cmpId, layer, resultLayer, arr) {       
-        var addon = this;
-        var o = Ext.getCmp(cmpId) ? Ext.getCmp(cmpId) : false;
-        if (o) {
-            o.setValue("");
-        }
-
-        if (arr[id] && arr[id] != "") {
-            var point = layer.getFeatureById(arr[id]);
-            layer.removeFeatures(point);
-            arr[id] = "";
-            if (layer.features.length > 1) {
-                GEOR.Addons.Traveler.getRoad(addon);
-            } else {
-                resultLayer.removeAllFeatures();
-                if(Ext.getCmp("trav_nav")){
-                	Ext.getCmp("trav_nav").hide();
-                }
-            }
-        }
-    },
-    
+   
     /**
      * Method: init
      *
@@ -140,12 +116,23 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 	                 qtip: OpenLayers.i18n("route"),
 	                 map: this.map,
 	                 group: "_travel",
-	                 iconCls: "addon-route-icon"
+	                 iconCls: "addon-route-icon",
+	                 listeners:{
+	                	 "click": function(box){
+	                		 addon.routePoints = GEOR.Addons.Traveler.route.pointsLayer(addon); // start points layer
+                			 addon.routeLines = GEOR.Addons.Traveler.route.linesLayer(addon);  // result layer
+                			 addon.routeControl = GEOR.Addons.Traveler.route.routeControl(addon);
+                			 addon.routeWindow = GEOR.Addons.Traveler.route.routeWindow(addon);
+                			 addon.routeWindow.show();
+                			 
+                			 
+	                	 }
+	                 }
 	             })
 	         )
         ];               
         this.items = items;        
-    },
+    },   
 
     /**
      * Method: destroy

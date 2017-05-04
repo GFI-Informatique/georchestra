@@ -584,7 +584,7 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban) {
         fields.add(comboRef);
     }
     // create refenretial checkBox
-    if (comboRef.getCréation de la fenêtre de l'outilStore() && (comboRef.getStore().url || !comboRef.getStore().url == "")) {
+    if (comboRef.getStore() && (comboRef.getStore().url || !comboRef.getStore().url == "")) {
         var checkRef = GEOR.Addons.Traveler.isochrone.refentialBox(ban, comboRef);
         items.push(checkRef) 
     }    
@@ -731,7 +731,7 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
                                     if (measure == areaMax) {
                                         setPos(feature, 0, 2);
                                     } else if (measure == areaMin) {
-                                    	Ext.form.CompositeField           setPos(feature, 2, 0);
+                                    	setPos(feature, 2, 0);
                                     } else {
                                         setPos(feature, 1, 1);
                                     }
