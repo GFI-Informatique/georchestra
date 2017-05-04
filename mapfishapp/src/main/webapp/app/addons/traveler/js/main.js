@@ -62,6 +62,17 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      */
     lastFieldUse: null,
     
+    /**
+     * Method: isoWindow
+     * get main tool window
+     */
+    isoWindow : null,
+
+    /**
+     * Method: routeWindow
+     * get main tool window
+     */
+    routeWindow : null,
    
     /**
      * Method: init
@@ -103,6 +114,7 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
 			                	 isoWin.show();		                	 
 		                	 } else {
 		                		 var window = Ext.getCmp("iso_win");
+		                		 addon.isoWindow = window;
 		                		 if(!window.isVisible()){
 		                			 window.show();
 		                		 }
@@ -123,9 +135,7 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
                 			 addon.routeLines = GEOR.Addons.Traveler.route.linesLayer(addon);  // result layer
                 			 addon.routeControl = GEOR.Addons.Traveler.route.routeControl(addon);
                 			 addon.routeWindow = GEOR.Addons.Traveler.route.routeWindow(addon);
-                			 addon.routeWindow.show();
-                			 
-                			 
+                			 addon.routeWindow.show();                			                 			
 	                	 }
 	                 }
 	             })
@@ -139,6 +149,36 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
      * Called by GEOR_tools when deselecting this addon
      */
     destroy: function() {
+    	var map = GeoExt.MapPanel.guess().map;
+    	if(addon.routeControl){
+    		addon.routeControl.destroy();
+    	}
+    	if(addon.isoControl){
+    		addon.isoControl.destroy();
+    	}
+    	if(addon.routeWindow){
+    		addon.routeWindow.destroy();
+    	}
+    	if(addon.isoWindow){
+    		addon.isoWindow.destroy();
+    	}
+    	if(addon.isoLayer){
+    		addon.isoLayer.destroy();
+    	}
+    	if(addon.isoResLayer){
+    		addon.isoResLayer.destroy();
+    	}
+        if (map && map.getLayersByName("route_lines").length > 0) {
+            map.getLayersByName("route_lines")[0].destroy();
+        }    
+        if (map && map.getLayersByName("route_points").length > 0) {
+            map.getLayersByName("route_points")[0].destroy();
+        }    	
+    	addon.featureArray = null;
+    	addon.isoStart = null;
+    	addon.loader = null;
+    	addon.isoResult = null;
+    	addon.lastFieldUse = null;
         GEOR.Addons.Base.prototype.destroy.call(this);
     }
 });
