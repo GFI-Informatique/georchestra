@@ -155,31 +155,21 @@ GEOR.Addons.Traveler.route.modeBtn = function(addon) {
             tooltip: OpenLayers.i18n("Traveler.route.walk.tooltip"),
             enableToggle: true,
             toggleGroup: "modeBtn",
-            iconCls: "route_walkBtn",
-            cls: "walkStyle",
+            cls: "isochrone-mode-button",
+            iconCls: "pedestrian",
             listeners: {
-                "mouseover": function(button) {
-                    if (!button.pressed) {
-                        button.setIconClass("walk-over");
-                    }
-                },
-                "mouseout": function(button) {
-                    if (!button.pressed) {
-                        button.setIconClass("route_walkBtn");
-                    }
-                },
-                "toggle": function(button) {
-                    if (button.pressed) {
-                        button.setIconClass("walk-pressed");
+                "toggle": function(b) {
+                    if (b.pressed) {
+                        b.setIconClass("pedestrian-pressed");
                         GEOR.Addons.Traveler.route.getRoad(addon);
                     } else {
-                        button.setIconClass("route_walkBtn");
+                        b.setIconClass("pedestrian");
                     }
                 }
             }
         }, {
             xtype: "button",
-            iconCls: "car-pressed",
+
             id: "route_carBtn",
             tooltip: OpenLayers.i18n("Traveler.route.car.tooltip"),
             enableToggle: true,
@@ -187,24 +177,15 @@ GEOR.Addons.Traveler.route.modeBtn = function(addon) {
             height: 35,
             toggleGroup: "modeBtn",
             width: 35,
-            cls: "carStyle",
+            iconCls: "vehicle-pressed",
+            cls: "isochrone-mode-button",
             listeners: {
-                "mouseover": function(button) {
-                    if (!button.pressed) {
-                        button.setIconClass("car-over");
-                    }
-                },
-                "mouseout": function(button) {
-                    if (!button.pressed) {
-                        button.setIconClass("route_carBtn");
-                    }
-                },
-                "toggle": function(button) {
-                    if (button.pressed) {
-                        button.setIconClass("car-pressed");
+                toggle: function(b) {
+                    if (b.pressed) {
+                        b.setIconClass("vehicle-pressed");
                         GEOR.Addons.Traveler.route.getRoad(addon);
                     } else {
-                        button.setIconClass("route_carBtn");
+                        b.setIconClass("vehicle");
                     }
                 }
             }
@@ -661,6 +642,7 @@ GEOR.Addons.Traveler.route.createPanel = function(addon) {
                 xtype: "fieldset",
                 collapsible: true,
                 collapsed: true,
+                title: OpenLayers.i18n("Traveler.route.options.title"),
                 cls: "fsOptions",
                 items: [{
                     xtype: "compositefield",

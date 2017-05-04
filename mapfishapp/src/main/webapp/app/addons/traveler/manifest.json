@@ -47,7 +47,6 @@
         	"isochron.ban.emptytext": "Adresse....",
         	"isochrone.ban.tooltip": "Saisir une adresse à afficher sur la carte",
         	"isochrone.draw.tooltip" : "Dessiner un point à main levé",
-        	"traveler.options.title":"Options",
         	"traveler.isochrone.boxlabel.tunels": "Tunnels",
         	"traveler.isochrone.boxlabel.bridge": "Ponts",
         	"traveler.isochrone.boxtooltip.toll":"Péages",
@@ -95,7 +94,8 @@
   	        "Traveler.route.bridge.tooltip": "Eviter les ponts",
   	        "Traveler.route.checkbox.bridge" : "Ponts",
   	        "Traveler.route.checkbox.tunels" : "Tunnels",
-  	        "Traveler.route.tunnels.tooltip" : "Eviter les tunnels" 
+  	        "Traveler.route.tunnels.tooltip" : "Eviter les tunnels",
+  	        "Traveler.route.options.title": "Options" 
   	               	
         } 
     }
