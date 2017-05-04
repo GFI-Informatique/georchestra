@@ -24,7 +24,7 @@ GEOR.Addons.Traveler.route.pointsLayer = function(addon) {
     }
     if (map) {
         // manage if exist
-        if (map.getLayersByName("route_points").length > 1) {
+        if (map.getLayersByName("route_points").length > 0) {
             resultLayer = GeoExt.MapPanel.guess().map.getLayersByName("route_points")[0];
         } else {
             // layer options
@@ -33,6 +33,9 @@ GEOR.Addons.Traveler.route.pointsLayer = function(addon) {
                     displayInLayerSwitcher: false,
                     projection: map.getProjectionObject(),
                     styleMap: olStyle,
+                    preFeatureInsert: function(feature) {
+                        map.setCenter([feature.geometry.x, feature.geometry.y], 12, false); // adapt zoom extent
+                    },
                     onFeatureInsert: function(feature) {
                         var z = 0;
                         map.layers.forEach(function(el) { // change index
@@ -106,7 +109,7 @@ GEOR.Addons.Traveler.route.linesLayer = function(addon) {
 GEOR.Addons.Traveler.route.routeControl = function(addon) {
     var controlOptions;
     var map = addon.map;
-    var layer = addon.routePoints ? addon.routePoints : false;
+    var layer = GEOR.Addons.Traveler.route.pointsLayer(addon);
     var control = addon.routeControl && map.getControlsBy("id", addon.routeControl.id).length > 0 ? addon.routeControl : false; // manage if already exist    
     if (map && layer && !control) { // create and add control if not already exist                 	
         controlOptions = OpenLayers.Util.applyDefaults( // options
@@ -200,8 +203,9 @@ GEOR.Addons.Traveler.route.modeBtn = function(addon) {
  */
 GEOR.Addons.Traveler.route.removeFeature = function(addon, id) {
     var arr = addon.featureArray;
-    var layer = addon.routePoints;
-    var resultLayer = addon.routeLines;
+    //var layer = addon.routePoints;
+    var layer = GEOR.Addons.Traveler.route.pointsLayer(addon);
+    var resultLayer = GEOR.Addons.Traveler.route.linesLayer(addon);
     var addon = addon;
     var extCmp = Ext.getCmp(id) ? Ext.getCmp(id) : false;
     if (extCmp) {
@@ -247,15 +251,18 @@ GEOR.Addons.Traveler.route.insertFset = function(addon) {
     GEOR.Addons.Traveler.route.refresh = function(addon) {
         var map = addon.map;
         addon.routeWindow = GEOR.Addons.Traveler.route.routeWindow(addon);
+        addon.featureArray = new Object();
+        if (GEOR.Addons.Traveler.route.pointsLayer(addon)) {
+            GEOR.Addons.Traveler.route.pointsLayer(addon).removeAllFeatures();
+        }
 
-        if (addon.routeControl) {
-            addon.routeControl.destroy();
+        if (GEOR.Addons.Traveler.route.linesLayer(addon)) {
+            GEOR.Addons.Traveler.route.pointsLayer(addon).removeAllFeatures();
         }
 
         if (Ext.getCmp("route_window")) {
             return Ext.getCmp("route_window").show();
         }
-
     },
 
     /**
@@ -623,7 +630,7 @@ GEOR.Addons.Traveler.route.getRoad = function(addon) {
             }
         });
     } else {
-        addon.routeLines.removeAllFeatures();
+        GEOR.Addons.Traveler.route.linesLayer(addon).removeAllFeatures();
     }
 };
 
@@ -642,7 +649,7 @@ GEOR.Addons.Traveler.route.createPanel = function(addon) {
                 xtype: "fieldset",
                 collapsible: true,
                 collapsed: true,
-                title: OpenLayers.i18n("Traveler.route.options.title"),
+                title: OpenLayers.i18n("traveler.options.title"),
                 cls: "fsOptions",
                 items: [{
                     xtype: "compositefield",
@@ -763,7 +770,7 @@ GEOR.Addons.Traveler.route.createPanel = function(addon) {
             }],
             listeners: {
                 "added": function(panel) {
-                	addon.routePanel = panel;
+                    addon.routePanel = panel;
                     panel.insert(1, GEOR.Addons.Traveler.route.addStep(addon, true, true, "startPoint"));
                     panel.insert(2, GEOR.Addons.Traveler.route.addStep(addon, false, true, "endPoint"));
                 }
