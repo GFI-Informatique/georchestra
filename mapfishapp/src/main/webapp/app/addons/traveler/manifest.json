@@ -95,8 +95,9 @@
   	        "Traveler.route.checkbox.bridge" : "Ponts",
   	        "Traveler.route.checkbox.tunels" : "Tunnels",
   	        "Traveler.route.tunnels.tooltip" : "Eviter les tunnels",
-  	        "Traveler.route.options.title": "Options" 
-  	               	
+  	        "Traveler.route.options.title": "Options",
+  	        "Traveler.route.result.distance":"Distance ",
+  	        "Traveler.route.result.time" : "Temps "  	               	
         } 
     }
 }
