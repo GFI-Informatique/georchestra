@@ -2,10 +2,8 @@ Ext.namespace("GEOR.Addons.Traveler.isochrone");
 
 /**
  * Create layer to contains start points
- * 
- * @param addon - Get attributes, objects and scope from GEOR.Addon
- * 
- *  return  {OpenLayers.Layer.Vector}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon
+ * @returns  {OpenLayers.Layer.Vector}
  */
 GEOR.Addons.Traveler.isochrone.layer = function(addon) {
 	var map = addon.map;
@@ -60,10 +58,8 @@ GEOR.Addons.Traveler.isochrone.layer = function(addon) {
 
 /**
  * Create layer to contains isochrones polygon results
- * 
- * @param addon - Get attributes, objects and scope from GEOR.Addon
- * 
- * return  {OpenLayers.Layer.Vector}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon
+ * @returns  {OpenLayers.Layer.Vector}
  */
 GEOR.Addons.Traveler.isochrone.resultLayer = function(addon) {
 	var map = addon.map;
@@ -71,7 +67,7 @@ GEOR.Addons.Traveler.isochrone.resultLayer = function(addon) {
     var from = new OpenLayers.Projection("EPSG:4326");
     var layer;
 
-    if (map) { // get layer if exist        	
+    if (map) { // get layer returnif exist        	
         if (map.getLayersByName(name).length > 0 && map.getLayersByName(name)[0]) {
             layer = map.getLayersByName(name)[0];
         } else { // or create layer
@@ -116,11 +112,9 @@ GEOR.Addons.Traveler.isochrone.resultLayer = function(addon) {
 
 /**
  * Create control to create points by freehand drawing
- * 
- * @param addon - Get attributes, objects and scope from GEOR.Addon
- * @param fId - id of ban combo use to geocode adress 
- * 
- * return {OpenLayers.Control.DrawFeature}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon
+ * @param {String} fId - id of ban combo use to geocode adress 
+ * @returns {OpenLayers.Control.DrawFeature}
  */
 GEOR.Addons.Traveler.isochrone.drawControl = function(addon, fId) {
 	var map = addon.map ? addon.map : "";
@@ -163,10 +157,8 @@ GEOR.Addons.Traveler.isochrone.drawControl = function(addon, fId) {
 
 /**
  * Create or replace compositefield to contains time text fields and time number fields
- * 
- * @param addon - Get attributes, objects and scope from GEOR.Addon 
- * 
- * return {Ext.form.CompositeField}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon 
+ * @returns {Ext.form.CompositeField}
  */
 GEOR.Addons.Traveler.isochrone.time = function(addon) {
     if (Ext.getCmp("iso_time")) {
@@ -221,8 +213,7 @@ GEOR.Addons.Traveler.isochrone.time = function(addon) {
 };
 
 /**
- * Create or replace compositefield that contains buttons use to select travel method
- * 
+ * Create or replace Ext.Form.CompositeField that contains buttons use to select travel method
  * return {Ext.form.CompositeField}
  */
 GEOR.Addons.Traveler.isochrone.mode = function() {
@@ -277,8 +268,7 @@ GEOR.Addons.Traveler.isochrone.mode = function() {
 
 /**
  * Create or replace compositefields that contains exclusions checkbox
- * 
- *  return {Ext.form.CompositeField} 
+ * @returns {Ext.form.CompositeField} 
  */
 GEOR.Addons.Traveler.isochrone.exclusions = function() {
     if (Ext.getCmp("iso_exclusions")) {
@@ -312,8 +302,8 @@ GEOR.Addons.Traveler.isochrone.exclusions = function() {
 
 /**
  * Create or replace ban field to search string adress and draw point to locate result
- * 
- * return {Ext.form.Combobox}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon
+ * @returns {Ext.form.Combobox}
  */
 GEOR.Addons.Traveler.isochrone.ban = function(addon) {
     var epsg4326 = new OpenLayers.Projection("EPSG:4326");
@@ -399,12 +389,10 @@ GEOR.Addons.Traveler.isochrone.ban = function(addon) {
 };
 
 /**
- * Create or replace ban compositefield that will be inserted in main window
- * 
- * @param addon - GEOR.Addon to get attributes and scope as layer to draw result 
- * @param banEl - {Ext.form.Combobox} create before to write input and fire research
- * 
- * return {Ext.form.CompositeField}
+ * Create or replace ban Ext.form.CompositeField that will be inserted in main window
+ * @param {Object} addon - GEOR.Addon to get attributes and scope as layer to draw result 
+ * @param {Object} banEl - {Ext.form.Combobox} create before to write input and fire research
+ * @returns {Ext.form.CompositeField}
  */
 GEOR.Addons.Traveler.isochrone.banField = function(addon, banEl) {
     return new Ext.form.CompositeField({
@@ -436,11 +424,9 @@ GEOR.Addons.Traveler.isochrone.banField = function(addon, banEl) {
  * Create or replace checkbox to display or hide referential combobox. 
  * If user check this, ban combo will be hidden.
  * If user check this, geometry checkbox will be unchecked.
- * 
- * @param banfield - {Ext.form.CompositeField} create before to contains ban combobox
- * @param comboRef - {Ext.form.Combobox} create to select feature from GeoServer among referential layers 
- * 
- * return {Ext.form.Checkbox}
+ * @param {Object} banField - {Ext.form.CompositeField} create before to contains ban combobox
+ * @param {Object} comboRef - {Ext.form.Combobox} create to select feature from GeoServer among referential layers 
+ * @returns {Ext.form.Checkbox}
  */
 GEOR.Addons.Traveler.isochrone.refentialBox = function(banField, comboRef) {
     var tr = OpenLayers.i18n;
@@ -472,12 +458,10 @@ GEOR.Addons.Traveler.isochrone.refentialBox = function(banField, comboRef) {
  * Create or replace checkbox to select geometry from local {Ext.state.Provider} if exist. 
  * If user check this, ban combo will be hidden.
  * If user check this, referential checkbox will be uncheck.
- * 
- * @param addon - Get attributes, objects and scope from GEOR.Addon 
- * @param banfield - {Ext.form.CompositeField} create before to contains ban combobox
- * @param comboRef - {Ext.form.Combobox} create to select feature from GeoServer among referential layers 
- * 
- * return {Ext.form.Checkbox}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon 
+ * @param {Object} banField - {Ext.form.CompositeField} create before to contains ban combobox
+ * @param {Object} comboRef - {Ext.form.Combobox} create to select feature from GeoServer among referential layers 
+ * @returns {Ext.form.Checkbox}
  */
 GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef) {
     var tr = OpenLayers.i18n;
@@ -560,11 +544,9 @@ GEOR.Addons.Traveler.isochrone.geometryBox = function(addon, banField, comboRef)
 /**
  * Create or replace fieldset that contains ban combobox, referential combobox
  * ban combo and referential combo need to be contained in a compositefield.
- * 
- * @param addon - Get attributes, objects and scope from GEOR.Addon 
- * @param ban - {Ext.form.CompositeField} contain ban combobox
- * 
- * return {Ext.form.FieldSet}
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon 
+ * @param {Object} ban - {Ext.form.CompositeField} contain ban combobox
+ * @returns {Ext.form.FieldSet}
  */
 GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban) {
     var items = [];
@@ -607,11 +589,9 @@ GEOR.Addons.Traveler.isochrone.pointFset = function(addon, ban) {
 
 /**
  * Create request to search isochrone with IGN service
- * 
- * @param service - url to call GET service
- * @settings settings - javascript object that contains all parameters to submit search criteria inside url
- * 
- * return {OpenLayers.Feature.Vector}
+ * @param {String} service - url to call GET service
+ * @settings {Object} settings - javascript object that contains all parameters to submit search criteria inside url
+ * @returns {OpenLayers.Feature.Vector}
  */
 GEOR.Addons.Traveler.isochrone.fireRequest = function (service,settings){
 	var feature;
@@ -638,11 +618,8 @@ GEOR.Addons.Traveler.isochrone.fireRequest = function (service,settings){
 
 /**
  * Create request to search isochrone with IGN service
- * 
- * @param service - url to call GET service
- * @settings settings - javascript object that contains all parameters to submit search criteria inside url
- * 
- * return isochrone and display new line in Result fieldset
+ * @param {Object} addon - Get attributes, objects from GEOR.Addon
+ * @returns isochrone and display new line in Result fieldset
  */
 GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
 	GEOR.waiter.show();
@@ -843,12 +820,10 @@ GEOR.Addons.Traveler.isochrone.createIsochrone = function(addon) {
     }        
 };
 
-/**Ext.form.CompositeField
+/**
  * Create method to save geometry to local {Ext.state.provider}
- * 
- * @param features - {array} of feature that will be encode to WKT
- * 
- * return error message or add geometry to local provider
+ * @param {Array} features - List feature that will be encode to WKT
+ * @returns error message or add geometry to local provider
  */
 
 GEOR.Addons.Traveler.isochrone.storeGeometry = function(features) {
@@ -895,14 +870,12 @@ GEOR.Addons.Traveler.isochrone.storeGeometry = function(features) {
 
 /**
  *  Create or replace isochrone main window
- *  
  *  @param mode -{Ext.form.CompositeField} that contain travel mode
  *  @param exclusion -{Ext.form.CompositeField} that contain exclusions checkbox
  *  @param fSet - {Ext.form.FieldSet} fieldset that contains ban combobox, referential combobox
- *  @param addon  - Get attributes, objects and scope from GEOR.Addon
+ *  @param addon  - Get attributes, objects from GEOR.Addon
  *  @param timeFields -{Ext.form.CompositeField} that contain time textfield and time number field
- *  
- *  return  {Ext.Window}
+ *  @returns  {Ext.Window}
  */
 GEOR.Addons.Traveler.isochrone.window = function(mode, fSet, exclusion, addon, timeFields) {
     var tr = OpenLayers.i18n;
