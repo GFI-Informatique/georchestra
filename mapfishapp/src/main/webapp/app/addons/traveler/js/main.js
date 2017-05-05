@@ -118,6 +118,9 @@ GEOR.Addons.Traveler = Ext.extend(GEOR.Addons.Base, {
                                 addon.isoWindow = window;
                                 if (!window.isVisible()) {
                                     window.show();
+                                } else {
+                                	window.destroy();
+                                	addon.isoWindow = null;
                                 }
                             }
                         }
