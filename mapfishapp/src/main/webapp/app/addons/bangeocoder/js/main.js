@@ -18,11 +18,11 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
             displayInLayerSwitcher: false,
             styleMap: new OpenLayers.StyleMap({
                 "default": {
-                    graphicWidth: 20,
+                	graphicWidth: 20,
                     graphicHeight: 32,
                     graphicYOffset: -28, // shift graphic up 28 pixels
                     //Change the location of picture if not find
-                    externalGraphic: GEOR.config.PATHNAME + "/app/addons/bangeocoder/img/geoPin.png",
+                    externalGraphic : 'app/css/images/pwrs/geoPin.png',
                 }
             })
         });
@@ -30,8 +30,8 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
         // create main window containing free text combo
         this.addressField = this._createCbSearch();
         this.win = new Ext.Window({
-            title: OpenLayers.i18n("banGeocoder.window_title"),
-            constrainHeader: true,
+            title: OpenLayers.i18n('banGeocoder.window_title'),
+            constrainHeader:true,
             width: 312,
             closable: true,
             closeAction: "hide",
@@ -55,16 +55,16 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
         if (this.target) {
             // create a button to be inserted in toolbar:
             this.components = this.target.insertButton(this.position, {
-                xtype: "button",
+                xtype: 'button',
                 tooltip: this.getTooltip(record),
-                iconCls: "addon-bangeocoder",
+                iconCls: 'addon-bangeocoder',
                 handler: this.showWindow,
                 scope: this
             });
             this.target.doLayout();
         } else {
             // create a menu item for the "tools" menu:
-            this.item = new Ext.menu.CheckItem({
+            this.item =  new Ext.menu.CheckItem({
                 text: this.getText(record),
                 qtip: this.getQtip(record),
                 iconCls: "addon-bangeocoder",
@@ -84,45 +84,55 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
 
         // get options from config.json file
         var banGeocoderOptions = this.options;
+        var map = GeoExt.MapPanel.guess().map;
+        var to = new OpenLayers.Projection("EPSG:4326")
 
         // create store to pass free text and get result from service (URL)
-        var storeBAN = new Ext.data.JsonStore({
+    	var store = new Ext.data.JsonStore({
             proxy: new Ext.data.HttpProxy({
-                url: banGeocoderOptions.geocodeServiceUrl,
-                method: "GET",
-                autoLoad: true
+                url:banGeocoderOptions.geocodeServiceUrl, // set service URL in config.json file, more informations in README
+                method: 'GET',
+                autoLoad:true
             }),
-            baseParams: {
-                limit: banGeocoderOptions.limitResponse // number of result is default set to 5, change it in config.json file, more informations in README
-            },
-            storeId: "geocodeStore",
-            root: "features",
-            fields: [{
-                name: "typeGeometry",
-                convert: function(v, rec) {
-                    return rec.geometry.type;
-                }
-            }, {
-                name: "coordinates",
-                convert: function(v, rec) {
-                    return rec.geometry.coordinates;
-                }
-            }, {
-                name: "id",
-                convert: function(v, rec) {
-                    return rec.properties.id;
-                }
-            }, {
-                name: "label",
-                convert: function(v, rec) {
-                    return rec.properties.label;
-                }
-            }],
-            totalProperty: "limit",
+            storeId:'geocodeStore',
+            root:'features',
+            fields:[                    
+                    {name:'typeGeometry',
+                     convert:function(v,rec){
+                         return rec.geometry.type
+                     }
+                    },
+                    {name:'coordinates',
+                     convert:function(v,rec){
+                         return rec.geometry.coordinates
+                     }
+                    },
+                    {name:'id',
+                     convert:function(v,rec){
+                         return rec.properties.id
+                     }
+                    },
+                    {name:'label',
+                     convert:function(v,rec){
+                         return rec.properties.label
+                     }
+                    }                                              
+                   ],
+            totalProperty: 'limit',
             listeners: {
-                "beforeload": function(store) {
-                    // service is waiting for params q not query
+                "beforeload": function(q) {
+                    //get lat long from map center
+                    if ( /*banGeocoderOptions.useMapCenter &&*/ map) { // control if option is activate in GEOR.custom.useMapCenter
+                        var x = map.getCenter().lon;
+                        var y = map.getCenter().lat;
+                        var geom = new OpenLayers.Geometry.Point(x, y).transform(map.getProjection(), to);
+                        if (geom.x && geom.y) {
+                            store.baseParams.lon = geom.x;
+                            store.baseParams.lat = geom.y;
+                        }
+                    }
                     store.baseParams.q = store.baseParams["query"];
+                    store.baseParams.limit = banGeocoderOptions.limitResponse; // number of result is default set to 5, change it in config.json file, more informations in README
                     delete store.baseParams["query"];
                 }
             }
@@ -130,15 +140,15 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
 
         // Create search combo
         return new Ext.form.ComboBox({
-            emptyText: OpenLayers.i18n("banGeocoder.field_emptytext"),
-            fieldLabel: OpenLayers.i18n("banGeocoder.field_label"),
-            id: "comboGeocoder",
-            displayField: "label",
-            loadingText: OpenLayers.i18n("Loading..."),
+            emptyText: OpenLayers.i18n('banGeocoder.field_emptytext'),
+            fieldLabel: OpenLayers.i18n('banGeocoder.field_label'),
+            id:'comboGeocoder',
+            displayField:'label',
+            loadingText: OpenLayers.i18n('Loading...'),
             width: 300,
-            store: storeBAN,
+            store: store,
             hideTrigger: true,
-            pageSize: 0,
+            pageSize:0,
             minChars: 5,
             listeners: {
                 "select": this._onComboSelect,
@@ -147,39 +157,45 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
         });
     },
 
-
+    
     /*
      * Method: _onComboSelect
      * Callback on combo selected to create and display address location from geometry
      * 
      */
-    _onComboSelect: function(combo, record) {
-        if (this.layer.features.length > 0) {
-            this.layer.destroyFeatures();
+    
+    _onComboSelect: function(combo, record) {      	
+        if(this.layer.features.length > 0){
+        	this.layer.destroyFeatures();        	
         }
-
-        var from = new OpenLayers.Projection("EPSG:4326"); // default GeoJSON SRS return by the service 
-        var to = this.map.getProjectionObject();
-
+        var geom, toCoordX, toCoordY, from, to, geom, fromCoordX, fromCoordY, point, feature
+        from = new OpenLayers.Projection("EPSG:4326"), // default GeoJSON SRS return by the service 
+        to = this.map.getProjectionObject();
+        
         //get coordinates from GeoJson
-        var fromCoordX = record.json.geometry.coordinates[0];
-        var fromCoordY = record.json.geometry.coordinates[1];
-
+        fromCoordX = record.json.geometry.coordinates[0];
+        fromCoordY = record.json.geometry.coordinates[1];
+        
         //create feature from GeoJson geometry
 
         // get geometry
-        var geom = new OpenLayers.Geometry.Point(fromCoordX, fromCoordY).transform(from, to);
+        geom = new OpenLayers.Geometry.Point(fromCoordX, fromCoordY).transform(from, to);
 
         // create point from geometry find in GeoJSON and create vector feature from point geometry
-        var point = new OpenLayers.Geometry.Point(geom.x, geom.y);
-        var feature = new OpenLayers.Feature.Vector(point);
-
+        point = new OpenLayers.Geometry.Point(geom.x,geom.y);
+        feature = new OpenLayers.Feature.Vector(point);
+        
         // add point feature to layer and zoom on    
         this.layer.addFeatures(feature);
-        this.map.setCenter(new OpenLayers.LonLat(geom.x, geom.y), 10);
+
+        // add point feature to layer and zoom on    
+        var maxScaleLevel = this.options.maxScaleLevel;
+        this.map.setCenter(
+            new OpenLayers.LonLat(geom.x,geom.y),
+            maxScaleLevel);    
     },
 
-
+    
     /**
      * Method: showWindow
      */
@@ -187,7 +203,7 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
         this.win.show();
     },
 
-
+    
     /**
      * Method: destroy
      * Called by GEOR_tools when deselecting this addon
@@ -195,7 +211,8 @@ GEOR.Addons.BANGeocoder = Ext.extend(GEOR.Addons.Base, {
     destroy: function() {
         this.win.destroy();
         this.layer.destroyFeatures();
-
+        
         GEOR.Addons.Base.prototype.destroy.call(this);
     }
 });
+
